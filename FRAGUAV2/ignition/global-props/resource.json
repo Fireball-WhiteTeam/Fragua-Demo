@@ -1,0 +1,16 @@
+{
+  "scope": "A",
+  "version": 1,
+  "restricted": false,
+  "overridable": true,
+  "files": [
+    "data.bin"
+  ],
+  "attributes": {
+    "lastModification": {
+      "actor": "Isaac Vilchis",
+      "timestamp": "2026-05-12T17:14:20Z"
+    },
+    "lastModificationSignature": "d1a905558a46621be5755196376bb3760681697b165e8b2f20024267086d5546"
+  }
+}

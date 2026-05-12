@@ -1,0 +1,16 @@
+{
+  "scope": "G",
+  "version": 1,
+  "restricted": false,
+  "overridable": true,
+  "files": [
+    "props.json"
+  ],
+  "attributes": {
+    "lastModificationSignature": "75ecb6d4355a766894573b8a8d531aef4d67efb1f602f315d5581e1079f6b962",
+    "lastModification": {
+      "actor": "Isaac Vilchis",
+      "timestamp": "2026-05-12T21:16:46Z"
+    }
+  }
+}
