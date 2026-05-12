@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Symbolconfiguration xmlns="http://www.3s-software.com/schemas/Symbolconfiguration.xsd">
+  <Header>
+    <Version>3.5.14.0</Version>
+    <SymbolConfigObject version="4.7.0.0" runtimeid="3.5.22.10" libversion="4.6.0.0" compiler="3.5.22.0" lmm="3.5.22.10" profile="CODESYS V3.5 SP22 Patch 1+" settings="SupportOPCUA, LayoutCalculator=OptimizedClientSideLayoutCalculator" />
+    <ProjectInfo name="FraguaV2" devicename="Device" appname="Application" />
+  </Header>
+  <TypeList>
+    <TypeSimple name="T_BOOL" size="1" swapsize="0" typeclass="Bool" iecname="BOOL" />
+    <TypeSimple name="T_INT" size="2" swapsize="2" typeclass="Int" iecname="INT" />
+    <TypeSimple name="T_REAL" size="4" swapsize="4" typeclass="Real" iecname="REAL" />
+    <TypeSimple name="T_TIME_OF_DAY" size="4" swapsize="4" typeclass="TimeOfDay" iecname="TIME_OF_DAY" />
+    <TypeSimple name="T_UDINT" size="4" swapsize="4" typeclass="UDInt" iecname="UDINT" />
+    <TypeSimple name="T_UINT" size="2" swapsize="2" typeclass="UInt" iecname="UINT" />
+  </TypeList>
+  <NodeList>
+    <Node name="Application">
+      <Node name="PLC_PRG">
+        <Node name="_Aux" type="T_REAL" access="ReadWrite" />
+        <Node name="_Carga" type="T_REAL" access="ReadWrite" />
+        <Node name="_Luces" type="T_INT" access="ReadWrite" />
+        <Node name="_MinAnt" type="T_UINT" access="ReadWrite" />
+        <Node name="_Result" type="T_UDINT" access="ReadWrite" />
+        <Node name="_SegDia" type="T_UDINT" access="ReadWrite" />
+        <Node name="_Timestamp" type="T_UDINT" access="ReadWrite" />
+        <Node name="_TOD" type="T_UDINT" access="ReadWrite" />
+        <Node name="Alta_Alarm" type="T_BOOL" access="ReadWrite" />
+        <Node name="Alta_AlarmSP" type="T_REAL" access="ReadWrite" />
+        <Node name="Alta_Hist" type="T_REAL" access="ReadWrite" />
+        <Node name="Alta_On" type="T_BOOL" access="ReadWrite" />
+        <Node name="Alta_SP" type="T_REAL" access="ReadWrite" />
+        <Node name="Alta_Temp" type="T_REAL" access="ReadWrite" />
+        <Node name="Baja_Alarm" type="T_BOOL" access="ReadWrite" />
+        <Node name="Baja_AlarmSP" type="T_REAL" access="ReadWrite" />
+        <Node name="Baja_Hist" type="T_REAL" access="ReadWrite" />
+        <Node name="Baja_On" type="T_BOOL" access="ReadWrite" />
+        <Node name="Baja_SP" type="T_REAL" access="ReadWrite" />
+        <Node name="Baja_Temp" type="T_REAL" access="ReadWrite" />
+        <Node name="FP" type="T_REAL" access="ReadWrite" />
+        <Node name="Hora" type="T_TIME_OF_DAY" access="ReadWrite" />
+        <Node name="Hora_H" type="T_UINT" access="ReadWrite" />
+        <Node name="Hora_M" type="T_UINT" access="ReadWrite" />
+        <Node name="Hora_S" type="T_UINT" access="ReadWrite" />
+        <Node name="HVAC1_Hist" type="T_REAL" access="ReadWrite" />
+        <Node name="HVAC1_On" type="T_BOOL" access="ReadWrite" />
+        <Node name="HVAC1_Out" type="T_REAL" access="ReadWrite" />
+        <Node name="HVAC1_SP" type="T_REAL" access="ReadWrite" />
+        <Node name="HVAC1_Temp" type="T_REAL" access="ReadWrite" />
+        <Node name="HVAC2_Hist" type="T_REAL" access="ReadWrite" />
+        <Node name="HVAC2_On" type="T_BOOL" access="ReadWrite" />
+        <Node name="HVAC2_Out" type="T_REAL" access="ReadWrite" />
+        <Node name="HVAC2_SP" type="T_REAL" access="ReadWrite" />
+        <Node name="HVAC2_Temp" type="T_REAL" access="ReadWrite" />
+        <Node name="KVA" type="T_REAL" access="ReadWrite" />
+        <Node name="KVAR" type="T_REAL" access="ReadWrite" />
+        <Node name="KVARH" type="T_REAL" access="ReadWrite" />
+        <Node name="KW" type="T_REAL" access="ReadWrite" />
+        <Node name="KW_Alta" type="T_REAL" access="ReadWrite" />
+        <Node name="KW_Baja" type="T_REAL" access="ReadWrite" />
+        <Node name="KW_Base" type="T_REAL" access="ReadWrite" />
+        <Node name="KW_HVAC1" type="T_REAL" access="ReadWrite" />
+        <Node name="KW_HVAC2" type="T_REAL" access="ReadWrite" />
+        <Node name="KW_Luces" type="T_REAL" access="ReadWrite" />
+        <Node name="KW_VFD" type="T_REAL" access="ReadWrite" />
+        <Node name="KWH" type="T_REAL" access="ReadWrite" />
+        <Node name="Luz1" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz1_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz2" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz2_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz3" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz3_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz4" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz4_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz5" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz5_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz6" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz6_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz7" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz7_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz8" type="T_BOOL" access="ReadWrite" />
+        <Node name="Luz8_En" type="T_BOOL" access="ReadWrite" />
+        <Node name="Noche" type="T_BOOL" access="ReadWrite" />
+        <Node name="VarL1N" type="T_REAL" access="ReadWrite" />
+        <Node name="VarL2N" type="T_REAL" access="ReadWrite" />
+        <Node name="VarL3N" type="T_REAL" access="ReadWrite" />
+        <Node name="VFD_Hz" type="T_REAL" access="ReadWrite" />
+        <Node name="VFD_On" type="T_BOOL" access="ReadWrite" />
+        <Node name="VL1L2" type="T_REAL" access="ReadWrite" />
+        <Node name="VL1N" type="T_REAL" access="ReadWrite" />
+        <Node name="VL2L3" type="T_REAL" access="ReadWrite" />
+        <Node name="VL2N" type="T_REAL" access="ReadWrite" />
+        <Node name="VL3L1" type="T_REAL" access="ReadWrite" />
+        <Node name="VL3N" type="T_REAL" access="ReadWrite" />
+      </Node>
+    </Node>
+  </NodeList>
+</Symbolconfiguration>
