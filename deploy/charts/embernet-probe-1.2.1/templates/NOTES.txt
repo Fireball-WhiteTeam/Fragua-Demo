@@ -1,0 +1,25 @@
+EmberNET Network Probe has been deployed!
+
+  Release:    {{ .Release.Name }}
+  Namespace:  {{ .Release.Namespace }}
+  Mode:       {{ .Values.probe.deploymentMode }}
+  Tenant:     {{ .Values.probe.tenant }}
+  Site:       {{ .Values.probe.site }}
+  Building:   {{ .Values.probe.building | default "(not set)" }}
+
+{{- if .Values.network.hostNetwork }}
+  Network:    Host Network (L2/L3 discovery enabled)
+{{- else }}
+  Network:    Pod Network (L2 discovery limited)
+{{- end }}
+
+  Scan Interval: {{ .Values.probe.scanInterval }}
+
+To check probe status:
+  kubectl get pods -l app.kubernetes.io/name=embernet-probe -n {{ .Release.Namespace }}
+
+To view probe logs:
+  kubectl logs -l app.kubernetes.io/name=embernet-probe -n {{ .Release.Namespace }} -f
+
+NOTE: This probe uses a distroless container image (no shell).
+      Use 'kubectl logs' for diagnostics.

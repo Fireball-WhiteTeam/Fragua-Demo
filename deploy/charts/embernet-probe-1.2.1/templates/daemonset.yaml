@@ -1,0 +1,71 @@
+{{- if eq .Values.probe.deploymentMode "daemonset" }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "embernet-probe.fullname" . }}
+  labels:
+    {{- include "embernet-probe.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "embernet-probe.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "embernet-probe.selectorLabels" . | nindent 8 }}
+        # ═══════════════════════════════════════════════════════════
+        # THE BIG FIVE — EmberNET App Store Discovery Labels
+        # ═══════════════════════════════════════════════════════════
+        {{- include "embernet-probe.storeLabels" . | nindent 8 }}
+      annotations:
+        embernet.ai/display-name: {{ .Values.gui.displayName | default "EmberNET Network Probe" | quote }}
+    spec:
+      serviceAccountName: {{ include "embernet-probe.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.network.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- else }}
+      dnsPolicy: ClusterFirst
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: probe
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "embernet-probe.fullname" . }}-config
+            - secretRef:
+                name: {{ include "embernet-probe.fullname" . }}-secret
+          securityContext:
+            capabilities:
+              {{- toYaml .Values.securityContext.capabilities | nindent 14 }}
+          volumeMounts:
+            - name: ziti-identity
+              mountPath: /etc/openziti
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: ziti-identity
+          secret:
+            secretName: {{ include "embernet-probe.fullname" . }}-secret
+            items:
+              - key: ziti-identity.json
+                path: identity.json
+{{- end }}

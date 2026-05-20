@@ -1,0 +1,19 @@
+apiVersion: v2
+name: embernet-probe
+description: EmberNET Industrial Network Probe — L2/L3 Discovery & Topology Daemon. Supports auto-enrollment via the embernet-provisioner API.
+type: application
+version: 1.2.1
+appVersion: "1.1.0"
+icon: https://avatars.githubusercontent.com/u/254966106?s=200&v=4
+annotations:
+  catalog.cattle.io/display-name: "EmberNET Network Probe"
+  catalog.cattle.io/namespace: fireball-system
+  catalog.cattle.io/release-name: embernet-probe
+keywords:
+  - internal
+  - embernet-only
+  - network-probe
+
+maintainers:
+  - name: Patrick Ryan
+    email: patrick@fireballz.ai

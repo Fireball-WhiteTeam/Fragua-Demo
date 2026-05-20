@@ -1,0 +1,156 @@
+{{- if eq .Values.probe.deploymentMode "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "embernet-probe.fullname" . }}
+  labels:
+    {{- include "embernet-probe.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "embernet-probe.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "embernet-probe.selectorLabels" . | nindent 8 }}
+        # ═══════════════════════════════════════════════════════════
+        # THE BIG FIVE — EmberNET App Store Discovery Labels
+        # Without ALL FIVE on the pod template, the dashboard
+        # cannot discover, proxy, or manage this application.
+        # ═══════════════════════════════════════════════════════════
+        {{- include "embernet-probe.storeLabels" . | nindent 8 }}
+      annotations:
+        embernet.ai/display-name: {{ .Values.gui.displayName | default "EmberNET Network Probe" | quote }}
+    spec:
+      serviceAccountName: {{ include "embernet-probe.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.network.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- else }}
+      dnsPolicy: ClusterFirst
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.provisioner.enabled }}
+      # ════════════════════════════════════════════════════════════
+      # Auto-enrollment initContainer (1.2.1+)
+      # Calls the embernet-provisioner with the operator-managed shared
+      # secret. Captures the returned flux_jwt, runs `ziti edge enroll`,
+      # writes /shared/identity.json. Main container mounts /shared at
+      # /etc/openziti so the probe sees identity.json at its expected path.
+      # Fails fast on missing/invalid response so the pod restarts on
+      # backoff instead of crashlooping with "unexpected end of JSON input".
+      # ════════════════════════════════════════════════════════════
+      initContainers:
+        - name: ziti-enroller
+          image: "{{ .Values.provisioner.initImage.repository }}:{{ .Values.provisioner.initImage.tag }}"
+          imagePullPolicy: {{ .Values.provisioner.initImage.pullPolicy }}
+          env:
+            - name: PROVISIONER_URL
+              value: {{ .Values.provisioner.url | quote }}
+            - name: SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provisioner.sharedSecretRef.name | quote }}
+                  key:  {{ .Values.provisioner.sharedSecretRef.key | quote }}
+            - name: DEVICE_NAME
+              value: {{ .Values.provisioner.deviceNameOverride | default (include "embernet-probe.fullname" .) | quote }}
+            - name: DISPLAY_NAME
+              value: {{ .Values.provisioner.displayName | default (include "embernet-probe.fullname" .) | quote }}
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              # Per-node uniqueness: append node name so multiple replicas
+              # across nodes don't collide on a single provisioner identity.
+              FULL_NAME="${DEVICE_NAME}-${NODE_NAME}"
+              echo "Provisioning Ziti identity as: ${FULL_NAME}"
+
+              # POST to provisioner. wget is in openziti/ziti-cli's busybox layer.
+              RESP=$(wget -qO- --header="Content-Type: application/json" \
+                --post-data="{\"shared_secret\":\"${SHARED_SECRET}\",\"device_name\":\"${FULL_NAME}\",\"display_name\":\"${DISPLAY_NAME}\"}" \
+                "${PROVISIONER_URL}")
+              if [ -z "$RESP" ]; then
+                echo "ERROR: empty response from provisioner at ${PROVISIONER_URL}" >&2
+                exit 1
+              fi
+
+              # Extract flux_jwt without jq (the image is minimal alpine).
+              JWT=$(echo "$RESP" | sed -n 's/.*"flux_jwt"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+              if [ -z "$JWT" ]; then
+                echo "ERROR: no flux_jwt in provisioner response" >&2
+                echo "$RESP" | head -c 500 >&2
+                exit 1
+              fi
+              echo "Got JWT: ${#JWT} chars"
+
+              echo "$JWT" > /tmp/flux.jwt
+              ziti edge enroll --jwt /tmp/flux.jwt --out /shared/identity.json
+              SIZE=$(wc -c < /shared/identity.json)
+              echo "Enrolled identity written to /shared/identity.json (${SIZE} bytes)"
+              rm -f /tmp/flux.jwt
+          volumeMounts:
+            - name: ziti-identity-shared
+              mountPath: /shared
+      {{- end }}
+      containers:
+        - name: probe
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "embernet-probe.fullname" . }}-config
+            - secretRef:
+                name: {{ include "embernet-probe.fullname" . }}-secret
+          securityContext:
+            capabilities:
+              {{- toYaml .Values.securityContext.capabilities | nindent 14 }}
+          volumeMounts:
+            {{- if .Values.provisioner.enabled }}
+            # Mount the emptyDir at /etc/openziti so the probe finds
+            # identity.json where it expects it.
+            - name: ziti-identity-shared
+              mountPath: /etc/openziti
+              readOnly: true
+            {{- else }}
+            - name: ziti-identity
+              mountPath: /etc/openziti
+              readOnly: true
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- if .Values.provisioner.enabled }}
+        - name: ziti-identity-shared
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Ki
+        {{- else }}
+        - name: ziti-identity
+          secret:
+            secretName: {{ include "embernet-probe.fullname" . }}-secret
+            items:
+              - key: ziti-identity.json
+                path: identity.json
+        {{- end }}
+{{- end }}
