@@ -1,0 +1,19 @@
+# /etc/rancher/k3s/config.yaml on fragua-edge-01 (K3s server)
+# Applied 2026-05-19. Cluster: fragua-demo. K3s v1.35.4+k3s1.
+
+advertise-address: 100.64.0.30
+bind-address: 100.64.0.30
+cluster-init: true
+flannel-iface: wg0
+kube-apiserver-arg:
+- service-node-port-range=443-32767
+node-external-ip: 20.80.241.221
+node-ip: 100.64.0.30
+node-label:
+- embernet.ai/site=fragua
+- embernet.ai/facility=demo
+- embernet.ai/tenant=fragua-demo
+node-name: fragua-edge-01
+resolv-conf: /run/systemd/resolve/resolv.conf
+snapshotter: overlayfs
+write-kubeconfig-mode: '0644'
