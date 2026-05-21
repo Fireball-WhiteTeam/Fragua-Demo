@@ -1,261 +1,256 @@
-# Phase 7b — Ziti Service for `ignition-cloud` (Fragua Edge → Cloud GW)
+# Phase 7b — Ziti `ignition-cloud` dial path (Fragua → EmberNet)
 
-**Purpose.** Authorize the two Fragua edge nodes to dial Ignition Cloud through
-the Flux/Ziti zero-trust overlay, so each Edge gateway's "outgoing Gateway
-Network connection" lands on `ignition-cloud.fireball-system.svc.cluster.local`
-via the Ziti tunnel (not the public internet).
+_Status: **OPERATIONAL** as of 2026-05-21._
 
-**Run this on a machine that already has Ziti CLI access to
-`flux.embernet.ai` AND `kubectl` context to the EmberNet K3s cluster.**
+The Fragua edge can now dial `ignition-cloud.fireball-system.svc.cluster.local:8060`
+through the Flux/Ziti zero-trust overlay. Public-facing traffic stays on port
+**443 only** (per the platform constraint), shaped to look like normal HTTPS
+to `cdn.embernet.ai`.
 
----
-
-## Inputs you'll need
-
-| Var | Value |
-|---|---|
-| Ziti controller URL | `https://flux.embernet.ai:443` (via `kubectl port-forward` to `localhost:1280` if dialing from in-cluster) |
-| Admin user | `admin` |
-| Admin password | `GFTJcmyp4RntNjwgPE4Ntdqz2gJkpjfj` |
-| Fragua identity #1 | `Fragua-Embernode-0001` (already enrolled on `fragua-edge-01`) |
-| Fragua identity #2 | `Fragua-Embernode-0002` (already enrolled on `fragua-edge-02`) |
-| Service hostname | `ignition-cloud.fireball-system.svc.cluster.local` |
-| Service port | `8060` (Gateway Network) — or `8088` if your Ignition Cloud frontends GW over HTTP |
-| Intercept range on edges | `100.65.0.0/16` (flux-edge-tunnel default — DON'T overlap WG 100.64) |
+This runbook documents the FINAL state so the same path can be reproduced or
+extended (e.g. for `embernet-dashboard` callbacks, additional services, more
+remote sites).
 
 ---
 
-## Step 1 — Port-forward to the controller (in-cluster admin API)
+## End-to-end topology
 
-The management API is only reachable cluster-internal because of TLS SAN
-restrictions. Open the forward from a machine with kubectl context to the
-**EmberNet** cluster (i.e. an embernet001 shell or any node with the right kubeconfig):
-
-```bash
-kubectl port-forward -n flux-system svc/flux-controller-client 1280:443 &>/dev/null &
-sleep 2
 ```
-
-Confirm reachable:
-```bash
-curl -sk https://localhost:1280/edge/management/v1/version | jq .data.version
-# expect: "2.0.2" (OpenZiti 2.0.2)
-```
-
----
-
-## Step 2 — Login to Ziti
-
-```bash
-ziti edge login https://localhost:1280 \
-  -u admin -p 'GFTJcmyp4RntNjwgPE4Ntdqz2gJkpjfj' --yes
-```
-
-Token is written to `~/.config/ziti/ziti-cli.json`. Valid until next admin
-password change.
-
----
-
-## Step 3 — Verify Fragua identities are enrolled
-
-```bash
-ziti edge list identities 'name contains "Fragua-Embernode"'
-```
-
-You should see two entries with `IsAdmin=false`. Both are already enrolled
-(`hasEdgeRouterConnection=true`) — flux-edge-tunnel pods on the Fragua cluster
-brought them online on 2026-05-19.
-
-Capture their IDs into shell vars (the CLI accepts either ID or name as
-`@<name>` in role refs, but explicit IDs are safer for scripting):
-
-```bash
-ID_01=$(ziti edge list identities 'name="Fragua-Embernode-0001"' --output-json | jq -r '.data[0].id')
-ID_02=$(ziti edge list identities 'name="Fragua-Embernode-0002"' --output-json | jq -r '.data[0].id')
-echo "ID_01=$ID_01  ID_02=$ID_02"
+   Fragua app   ─dial→  100.65.0.1:8060   (Ziti synthetic IP)
+                            │
+                            ▼  iptables -t mangle TPROXY
+                       127.0.0.1:45609   (flux-edge-tunnel pod, hostNetwork)
+                            │
+                            ▼  TLS to controller-advertised endpoint
+              cdn.embernet.ai:443  ← public DNS A record to 20.10.93.244
+                            │
+                            ▼  Azure LB :443
+                       embernet005 :443   (klipper-lb hostNetwork)
+                            │
+                            ▼
+                       Traefik websecure
+                            │  IngressRouteTCP SNI=cdn.embernet.ai, passthrough
+                            ▼
+              flux-router-edge ClusterIP svc :443  (targetPort 3022)
+                            │
+                            ▼
+              flux-router pod (hostNetwork on embernet005) :3022
+                            │
+                            ▼  Ziti fabric — terminator
+              flux-tunnel-embernet-cp005 DaemonSet pod
+                            │
+                            ▼
+              ignition-cloud.fireball-system.svc.cluster.local:8060
 ```
 
 ---
 
-## Step 4 — Check whether an `ignition-cloud` service already exists
+## Identity / policy state (verified against the controller on 2026-05-21)
 
-```bash
-ziti edge list services 'name contains "ignition"'
-ziti edge list configs  'name contains "ignition"'
-```
+| Object | Name | ID | Notes |
+|---|---|---|---|
+| Edge router | `flux-router-v2` | `P.csD4A7T1` | hostname `cdn.embernet.ai`, supportedProtocols `tls://cdn.embernet.ai:443`, isOnline=true |
+| Edge router (legacy, retain for rollback) | `relay-us-east-1` | `nX3YHSQM5A` | offline, can be deleted once new relay is fully validated |
+| Service | `ignition-cloud` | `6H5U38Lo55M5aY9Oforg3` | encryptionRequired=true; two configs attached |
+| Intercept config | `ignition-cloud-intercept.v1` | `37EMSyG3qLwbwG8WGz8LRd` | tcp, address `ignition-cloud.fireball-system.svc.cluster.local`, port 8060 |
+| Host config | `ignition-cloud-host.v1` | `3lyGWHe83UBuPDu9o1tyYU` | tcp, same address+port |
+| Bind policy | `ignition-cloud-bind` | `3DUzRUoGjUIFYMrjSpVYzn` | identityRoles `#embernet-control-plane` |
+| Dial policy | `fragua-ignition-cloud-dial` | `6BY7TgbusFLUuf2ahigSyV` | identityRoles `@Fragua-Embernode-0001, @Fragua-Embernode-0002` |
+| Service-edge-router-policy | `ignition-cloud-routers` | `6xPIdtYrwqVYUk6Tau9np7` | serviceRoles `@ignition-cloud`, edgeRouterRoles `#all` |
+| Edge-router-policy (cp side) | `embernet-cp-edge-routers` | `2UiCna1WPVwJtrrU07an8n` | identityRoles `#embernet-control-plane`, edgeRouterRoles `#all` |
+| Edge-router-policy (Fragua side) | `fragua-edge-routers` | `4u67VxLW7XFW6aEJsY6Aq3` | identityRoles `@Fragua-Embernode-0001, @Fragua-Embernode-0002`, edgeRouterRoles `#all` |
+| Edge-router-policy (probe side) | `embernet-probes-routers` | `5iYvH6W1htgC4fvcccs0Yg` | identityRoles `#embernet-probes`, edgeRouterRoles `#all` |
 
-If a service named `ignition-cloud` (or close) is already configured for the
-EmberNet cp-001/004/005 identities, you only need to add a service-policy
-authorizing the Fragua identities to dial it (skip to Step 6).
-
-If nothing exists, create configs + service (Steps 4a–4c).
-
-### 4a — Intercept config (what the dialing side sees as a hostname)
-
-This is what the tunnel pod on each Fragua edge intercepts. DNS for the
-hostname resolves to a synthetic IP in `100.65.0.0/16`, traffic is
-captured, and Ziti routes it to whatever the bind side is.
-
-```bash
-ziti edge create config "ignition-cloud-intercept.v1" intercept.v1 '{
-  "protocols": ["tcp"],
-  "addresses": ["ignition-cloud.fireball-system.svc.cluster.local"],
-  "portRanges": [{"low": 8060, "high": 8060}]
-}'
-```
-
-### 4b — Host config (where the receiving side terminates)
-
-This says: in the EmberNet cluster, terminate the tunnel by dialing the
-real K8s service `ignition-cloud.fireball-system.svc.cluster.local:8060`.
-
-```bash
-ziti edge create config "ignition-cloud-host.v1" host.v1 '{
-  "protocol": "tcp",
-  "address":  "ignition-cloud.fireball-system.svc.cluster.local",
-  "port":     8060
-}'
-```
-
-### 4c — Service binding the two configs
-
-```bash
-ziti edge create service "ignition-cloud" \
-  --configs ignition-cloud-intercept.v1,ignition-cloud-host.v1
-```
+The two embernet-cp / Fragua identities (cp005 and Fragua-Embernode-0001) are
+the load-bearing pair for this demo. cp005 binds, Fragua-Embernode-0001
+dials. Both `hasEdgeRouterConnection: true` after the router fix.
 
 ---
 
-## Step 5 — Bind side: which identity hosts the service?
-
-The host side runs inside the EmberNet cluster (so it can dial the K8s
-service). Typically a tunnel identity on `embernet-cp-001` (or 004/005)
-is the binder. Verify:
+## How to verify the dial path
 
 ```bash
-ziti edge list service-policies 'name contains "ignition-cloud-bind"'
+# On any host running the Fragua flux-edge-tunnel:
+timeout 10 bash -c '</dev/tcp/100.65.0.1/8060 && echo CONNECTED'
+# → CONNECTED
 ```
 
-If no bind policy exists, create one targeting your existing cluster-side
-identity (e.g. `embernet-cp-001`):
+That confirms:
+1. The flux-edge-tunnel pod intercepted the TCP connection to the Ziti synthetic IP `100.65.0.1` (allocated from `100.65.0.0/16`)
+2. The tunnel established an apiSession with the controller via `cdn.embernet.ai:443`
+3. It got a circuit assigned, dialed the `ignition-cloud` service, reached the binder (cp005), and cp005 dialed the K8s service → returned a TCP handshake all the way back
 
-```bash
-ziti edge create service-policy "ignition-cloud-bind" Bind \
-  --service-roles "@ignition-cloud" \
-  --identity-roles "@embernet-cp-001"
-```
-
-(Adjust the identity-role if your cluster-internal binder identity has a
-different name.)
+If it hangs without printing CONNECTED, check (in order):
+- `kubectl -n flux-system logs <tunnel-pod> --tail=50` — look for `dial tcp` errors. If `connection refused` to `cdn.embernet.ai:443`, the router record is wrong again or traefik routing broke
+- The probe identity (or whichever dialing identity you're using) has `hasEdgeRouterConnection: true` in the controller
+- The binder pod (`flux-tunnel-embernet-cp005-flux-edge-tunnel-*`) shows "hosting service" for ignition-cloud in its logs
 
 ---
 
-## Step 6 — Dial side: authorize Fragua identities
+## How to add another service over this path (e.g. `embernet-dashboard`)
 
-This is the new policy that lets the Fragua edges dial the service:
-
-```bash
-ziti edge create service-policy "fragua-ignition-cloud-dial" Dial \
-  --service-roles  "@ignition-cloud" \
-  --identity-roles "@Fragua-Embernode-0001,@Fragua-Embernode-0002"
-```
-
-Confirm:
+Run the inventory + creation Python from inside the provisioner pod (it has
+`httpx` + admin creds in env, see `.agent/CREDENTIALS.md`):
 
 ```bash
-ziti edge list service-policies 'name contains "fragua-ignition-cloud"'
+POD=$(kubectl -n embernet-provisioner get pods -l app.kubernetes.io/name=embernet-provisioner -o jsonpath='{.items[0].metadata.name}')
+cat > /tmp/add-svc.py <<'PYEOF'
+import os, httpx, json
+zc=os.environ["ZITI_CONTROLLER_URL"]
+c=httpx.Client(verify=False, base_url=zc, timeout=15.0)
+tok=c.post("/edge/management/v1/authenticate", params={"method":"password"},
+           json={"username":os.environ["ZITI_ADMIN_USER"],"password":os.environ["ZITI_ADMIN_PASSWORD"]}).json()["data"]["token"]
+h={"zt-session":tok, "content-type":"application/json"}
+
+# 1) Intercept config (what the dialing tunnel intercepts)
+ic = {
+    "name": "embernet-dashboard-intercept.v1",
+    "configTypeId": "intercept.v1",
+    "data": {
+        "protocols": ["tcp"],
+        "addresses": ["embernet-dashboard.fireball-system.svc.cluster.local"],
+        "portRanges": [{"low": 8080, "high": 8080}],
+    },
+}
+r=c.post("/edge/management/v1/configs", headers=h, content=json.dumps(ic))
+intercept_id = r.json()["data"]["id"]; print("intercept:", intercept_id)
+
+# 2) Host config (what the binder pod does with the inbound circuit)
+hc = {
+    "name": "embernet-dashboard-host.v1",
+    "configTypeId": "host.v1",
+    "data": {
+        "protocol": "tcp",
+        "address":  "embernet-dashboard.fireball-system.svc.cluster.local",
+        "port":     8080,
+    },
+}
+r=c.post("/edge/management/v1/configs", headers=h, content=json.dumps(hc))
+host_id = r.json()["data"]["id"]; print("host:", host_id)
+
+# 3) Service tying them together
+sv = {
+    "name": "embernet-dashboard",
+    "configs": [intercept_id, host_id],
+    "encryptionRequired": True,
+    "roleAttributes": [],
+}
+r=c.post("/edge/management/v1/services", headers=h, content=json.dumps(sv))
+svc_id = r.json()["data"]["id"]; print("service:", svc_id)
+
+# 4) Bind policy — cp side hosts it
+bp = {
+    "name": "embernet-dashboard-bind",
+    "type": "Bind",
+    "serviceRoles":  [f"@{svc_id}"],
+    "identityRoles": ["#embernet-control-plane"],
+    "semantic":      "AnyOf",
+}
+r=c.post("/edge/management/v1/service-policies", headers=h, content=json.dumps(bp))
+print("bind policy:", r.json()["data"]["id"])
+
+# 5) Dial policy — probes (and anything else) can dial
+dp = {
+    "name": "embernet-probes-dashboard-dial",
+    "type": "Dial",
+    "serviceRoles":  [f"@{svc_id}"],
+    "identityRoles": ["#embernet-probes"],
+    "semantic":      "AnyOf",
+}
+r=c.post("/edge/management/v1/service-policies", headers=h, content=json.dumps(dp))
+print("dial policy:", r.json()["data"]["id"])
+
+# 6) Service-edge-router-policy — any router can carry this service
+sep = {
+    "name": "embernet-dashboard-routers",
+    "serviceRoles":    [f"@{svc_id}"],
+    "edgeRouterRoles": ["#all"],
+    "semantic":        "AnyOf",
+}
+r=c.post("/edge/management/v1/service-edge-router-policies", headers=h, content=json.dumps(sep))
+print("serp:", r.json()["data"]["id"])
+PYEOF
+kubectl -n embernet-provisioner cp /tmp/add-svc.py $POD:/tmp/add-svc.py
+kubectl -n embernet-provisioner exec $POD -- python3 /tmp/add-svc.py
 ```
 
+After the cp005 tunnel poll-cycle picks up the new service (~30s), the
+probe — or any identity tagged `#embernet-probes` — can dial
+`embernet-dashboard.fireball-system.svc.cluster.local:8080` and reach the
+real K8s service.
+
 ---
 
-## Step 7 — Verify from a Fragua edge
+## Why this works even though port 443 is "taken" on embernet005
 
-SSH to `fragua-edge-01` (or -02) and resolve the hostname. The
-flux-edge-tunnel pod intercepts DNS for any Ziti service the identity is
-authorized to dial:
+The router doesn't bind 443 itself. It binds the default `:3022` (no
+privileged-port issue, no klipper-lb conflict). The PUBLIC-facing 443 is
+served by traefik's `websecure` entrypoint. Traefik does SNI-passthrough
+based on the `IngressRouteTCP` CRDs:
 
-```bash
-ssh emberadmin@20.80.241.221       # password: GreatBallzFire01
-getent hosts ignition-cloud.fireball-system.svc.cluster.local
-# expect a 100.65.x.x address (NOT SERVFAIL)
-
-nc -w 3 -zv ignition-cloud.fireball-system.svc.cluster.local 8060
-# expect: succeeded
+```yaml
+# flux-system/IngressRouteTCP flux-router-cdn (created in this work)
+spec:
+  entryPoints: [websecure]
+  routes:
+  - match: HostSNI(`cdn.embernet.ai`)
+    services:
+    - name: flux-router-edge
+      port: 443       # ← svc port; ClusterIP svc forwards to pod's :3022
+  tls:
+    passthrough: true
 ```
 
-The first time you query, the tunnel pod fetches the service definition
-from the controller — give it ~30 seconds after the policy lands.
+The `flux-router-edge` Service's `targetPort` was patched from `443` to
+`3022` to bridge `svc.port=443 → router.pod.port=3022`. Without that patch,
+traefik would have routed to a closed port.
+
+The router's `config.yml` was hand-edited (with `ZITI_BOOTSTRAP=false` to
+prevent bootstrap regen on subsequent restarts) to advertise
+`tls:cdn.embernet.ai:443` even though it BINDS on `0.0.0.0:3022`. That
+split — bind on a high port internally, advertise on 443 externally — is
+what makes the whole thing fit without touching the LB/firewall.
 
 ---
 
-## Step 8 — Wire up the Ignition Edge "Outgoing GW Connection"
+## Notes on cert SANs
 
-On each Fragua Edge gateway web UI (`http://<edge>:8088/web/config/gateway-network`):
+The router cert needs `cdn.embernet.ai` as a SAN, or the dialing SDK
+rejects the TLS handshake (SNI mismatch). The OpenZiti router bootstrap
+populates CSR SANs from `ZITI_ROUTER_ADVERTISED_ADDRESS`. We set that env
+on the Deployment to `cdn.embernet.ai`. After wiping the on-disk cert
+files in `/var/lib/flux-router/` and restarting, the bootstrap regenerated
+the CSR with the right SAN list and the controller signed a fresh cert.
 
-1. Add **Outgoing Connection**
-2. **Host:** `ignition-cloud.fireball-system.svc.cluster.local`
-3. **Port:** `8060`
-4. **SSL:** No (the Ziti tunnel handles confidentiality)
-5. Save → reload
-
-Within ~60s the Edge gateway should show the connection as `Connected` and
-project-tag history starts flowing toward Ignition Cloud.
-
-Repeat for both edges. Same hostname/port from both — Ziti picks the
-right edge router automatically.
-
----
-
-## Cleanup (when done with the port-forward)
-
-```bash
-pkill -f "kubectl port-forward.*1280"
-```
+**`ZITI_AUTO_RENEW_CERTS=true` reissues with the SAME SANs the original
+CSR carried.** Auto-renew does NOT pick up SAN changes from a modified
+config or env. To rotate SANs cleanly you must wipe the hostPath identity
+files and re-enroll (see `/var/lib/flux-router/` wipe pattern in this
+runbook's commit history).
 
 ---
 
-## Quick paste-anywhere block (all of Steps 2–6 in one go)
+## Rollback plan
 
-```bash
-# Run from a host with kubectl context to EmberNet cluster + ziti CLI in PATH
-kubectl port-forward -n flux-system svc/flux-controller-client 1280:443 &>/dev/null &
-sleep 3
-ziti edge login https://localhost:1280 -u admin -p 'GFTJcmyp4RntNjwgPE4Ntdqz2gJkpjfj' --yes
+If anything breaks:
 
-# Confirm Fragua identities exist
-ziti edge list identities 'name contains "Fragua-Embernode"'
+1. Delete the new router record `P.csD4A7T1` (`flux-router-v2`):
+   ```
+   ziti edge delete edge-router P.csD4A7T1
+   ```
+2. Recreate `relay-us-east-1` (`nX3YHSQM5A`) — already exists, just re-enroll a fresh JWT
+3. Restore the original `flux-router-enrollment` Secret with the legacy JWT
+4. `kubectl -n flux-system rollout restart deploy flux-router`
+5. Drop the `flux-router-cdn` IngressRouteTCP
 
-# Create service (skip if it already exists)
-ziti edge create config 'ignition-cloud-intercept.v1' intercept.v1 \
-  '{"protocols":["tcp"],"addresses":["ignition-cloud.fireball-system.svc.cluster.local"],"portRanges":[{"low":8060,"high":8060}]}'
-ziti edge create config 'ignition-cloud-host.v1' host.v1 \
-  '{"protocol":"tcp","address":"ignition-cloud.fireball-system.svc.cluster.local","port":8060}'
-ziti edge create service 'ignition-cloud' --configs ignition-cloud-intercept.v1,ignition-cloud-host.v1
-
-# Bind policy (use an existing cluster-internal tunnel identity)
-ziti edge create service-policy 'ignition-cloud-bind' Bind \
-  --service-roles '@ignition-cloud' --identity-roles '@embernet-cp-001'
-
-# Dial policy for Fragua
-ziti edge create service-policy 'fragua-ignition-cloud-dial' Dial \
-  --service-roles '@ignition-cloud' --identity-roles '@Fragua-Embernode-0001,@Fragua-Embernode-0002'
-
-pkill -f "kubectl port-forward.*1280"
-```
+You'll be back to the broken-but-known state where in-cluster cp tunnels
+fail with `dial tcp 127.0.0.1:3022: connect: connection refused` but the
+controller record looks "online". Useful only if the new path is causing
+worse problems.
 
 ---
 
-## Troubleshooting
-
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| `getent hosts ...` returns SERVFAIL on edge | Service exists but identity isn't authorized | Re-check `ziti edge list service-policies` includes `Fragua-Embernode-*` |
-| `nc -zv` succeeds but Edge GW won't connect | Wrong port (try 8088 if 8060 is HTTP-fronted) | Check Ignition Cloud's GW listen port; adjust both intercept + host configs |
-| `getent` resolves but `nc` times out | No bind-side identity claims the service | Create the `Bind` policy (Step 5) |
-| Service appears but Edge gateway tunnel reports "no path" | flux-edge-tunnel pod hasn't refreshed | `kubectl rollout restart ds -n flux-system -l app.kubernetes.io/name=flux-edge-tunnel` on the Fragua cluster |
-
----
-
-*Auto-generated 2026-05-19 by Claude (Opus 4.7). Copy this file to the
-machine that has Ziti + EmberNet kubectl context, then execute Steps 2–6
-verbatim. ~5 minutes start to finish.*
+*Originally drafted 2026-05-19; rewritten 2026-05-21 after the actual root
+cause was found and resolved. Previous version assumed an upstream Ziti
+admin task — that turned out to be wrong; the work is doable end-to-end from
+this repo's tooling.*

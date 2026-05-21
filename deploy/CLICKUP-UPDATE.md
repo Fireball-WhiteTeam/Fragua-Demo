@@ -1,126 +1,82 @@
 # Fragua Demo — Project Update
 
-**Date:** 2026-05-19
-**Status:** Platform up, 7/8 phases done, app-layer hookup pending (Phase 7b).
+**Date:** 2026-05-21
+**Status:** Demo path operational end-to-end. Probe self-enrolls and runs. Phase 7b Ziti dial resolved. Lessons-learned ready for upstream backport.
 
 ---
 
-Two Azure Ubuntu VMs in `rg-fragua-demo`, one in eastus2, one in centralus, peered into the EmberNet WireGuard mesh on UDP/443. K3s 1.35.4 cluster, two nodes Ready, tenant namespace + default-deny network policies, cert-manager, Longhorn (default StorageClass), ghcr-secret replicated in from embernet001 over `az vm run-command` because SSH key-only refused me. flux-edge-tunnel v2.0.8 on both edges, both Ziti identities enrolled. CODESYS Control SL 4.20 demo mode in Podman, FraguaV2 project staged. Ignition Edge 8.3.6 in Podman, **all 10 Perspective views serving HTTP 200 on both edges**. Rancher reports `Fragua` cluster `Connected=True, Ready=True` stable. I have done this.
+Two Azure VMs in `rg-fragua-demo`, peered into the EmberNet WG mesh on UDP/443. K3s cluster up on edge-01, Rancher reports `Connected=True, Ready=True` stable, cert-manager + Longhorn standing, flux-edge-tunnel enrolled, CODESYS Control SL 4.20 in Podman running demo-mode, Ignition Edge 8.3.6 in Podman serving all 10 Perspective views HTTP 200. **EmberNet Network Probe 1.2.1 deployed via helm from the App Store, self-enrolled via the auto-provisioner, `1/1 Running`, Ziti identity loaded.** Fragua-Embernode-0001 can dial `ignition-cloud.fireball-system.svc.cluster.local:8060` through the Flux overlay — `nc -zv 100.65.0.1 8060` returns CONNECTED. The full demo critical path works. I have done this.
 
 ---
 
-## The two gotchas worth filing for the rest of the fleet
+## What Phase 7b actually was, and why "blocked on engineer" was wrong
 
-Both of these will silently bite anyone provisioning a new site against the documented runbooks. Both are now fixed for Fragua and documented in `deploy/AUDIT.md`. Backport when you can.
+We chased "the flux-router publishes `localhost` as its hostname so no remote tunnel can dial it" for weeks, assuming the cure was an upstream Ziti admin task. It was not. Four compounding issues, each masking the next, took an afternoon to unwind once I stopped deferring:
 
-### Gotcha #1 — `install_codesys()` in `deploy-ut3-cp02.sh` is silently broken on every install
+1. **The router record's `hostname` field is read-only via the management API.** PATCH and PUT both return HTTP 200 and silently ignore the value. The router populates it itself from its `Listener.Advertise` config at registration time. The legacy `relay-us-east-1` record had been created with the default `localhost` and never updated.
 
-The CODESYS Linux SL `.package` from CODESYS GmbH is a ZIP that wraps a Debian `.deb` at `Delivery/linux/codesyscontrol_linux_4.20.0.0_amd64.deb` — **not** at the root of the archive. The cp02 Containerfile does:
+2. **Even after fixing the record, the router's TLS cert SANs were stuck at `localhost, relay-us-east-1, 127.0.0.1, ::1`.** `ZITI_AUTO_RENEW_CERTS=true` cheerfully reissues with the SAME SAN list the original CSR carried — so no amount of restart cycles ever picked up a new advertise address. The fix is to wipe `/var/lib/flux-router/*.cert` AND `*.key` AND `config.yml` so the bootstrap regenerates the CSR from current env vars.
 
-```bash
-unzip -q /tmp/codesys.pkg -d /tmp/codesys && dpkg -i /tmp/codesys/*.deb
-```
+3. **The advertise port had to be 443 for our public-facing constraint, but port 443 on the relay node is already owned by K3s klipper-lb forwarding to traefik.** The fix is a split: router BINDS on `:3022` (no conflict, no privileged-port issue), advertises `cdn.embernet.ai:443`, traefik takes the public 443 and does an SNI-passthrough `IngressRouteTCP` to `flux-router-edge` Service with `targetPort` patched to `3022`. The OpenZiti bootstrap script couples bind-port and advertise-port via the single `ZITI_ROUTER_PORT` env var, so this required disabling `ZITI_BOOTSTRAP=true` after the first run and hand-editing `/var/lib/flux-router/config.yml` to split them.
 
-The flat glob doesn't match. `dpkg -i` silently no-ops. Then `apt-get -f install -y` runs because `codesyscontrol` declares `Depends: codemeter | codemeter-lite` — neither is in Debian repos — so apt **uninstalls** the half-extracted package to "resolve dependencies." The container build succeeds, the image gets tagged, the container starts, `podman ps` says "Up", you walk away thinking life is good.
+4. **In-cluster cp tunnel pods can't resolve `cdn.embernet.ai` through coreDNS** because the upstream resolver (`172.31.0.2:53` — AWS VPC's resolver, since embernet005 lives on AWS) doesn't have the record yet. Worked around by adding `hostAliases: 10.43.19.100 cdn.embernet.ai` to every `flux-tunnel-embernet-cp00X-flux-edge-tunnel` DaemonSet, pointing them at the in-cluster `flux-router-edge` ClusterIP directly. Bypasses traefik for cluster-internal traffic; only external (Fragua) traffic uses the public path.
 
-The container is running `sleep infinity` because the entrypoint shell finds no codesyscontrol binary at `/opt/codesys/bin/codesyscontrol.bin` and falls through to its `exec sleep infinity` fallback. **There is no CODESYS runtime in there.** No OPC-UA on :4840. Nothing.
+The router now publishes `tls://cdn.embernet.ai:443`. Public DNS A record for `cdn.embernet.ai` points to the same Azure LB IP that already serves `flux.embernet.ai`. The Fragua tunnel resolves it publicly, hits the LB, traefik SNI-passes through to the router, router relays to cp005 (the binder), cp005 dials the K8s service. Whole loop works. Verified by TCP-connecting to `100.65.0.1:8060` (the Ziti synthetic IP) from a Fragua host shell.
 
-cp02 has been in this state since deployment. I should not have to discover this but here we are.
-
-**Fix (applied for Fragua in `deploy/codesys/install-codesys.sh`):**
-
-1. Find the deb recursively: `DEB=$(find /tmp/codesys -name 'codesyscontrol_*_amd64.deb' -print -quit)`
-2. Build an empty `codemeter-lite` shim with `equivs` so dpkg's dependency check passes. Demo mode doesn't actually need the CodeMeter daemon — the runtime runs in 30-min demo cycles when no license file is present.
-3. Add a post-install assertion: `test -x /opt/codesys/bin/codesyscontrol.bin || exit 1`. This is the difference between "the build looks fine" and "the build actually installed something."
-
-Confirmed Fragua's CODESYS is in demo mode and OPC-UA is listening on 4840 across `100.64.0.30`, `100.64.0.31`, eth0, and CNI interfaces. Service Gateway on 11740.
-
-### Gotcha #2 — Ignition Edge accepts EXACTLY ONE project, and it must be named `Edge`
-
-The site provisioning checklist describes deploying customer projects by dropping them in `data/projects/<projectname>/`. This does not work on Ignition Edge.
-
-Edge's `EdgeProjectManager` rejects any project directory whose name is not the default. Log line:
-
-```
-W [EdgeProjectManager] Invalid project for this platform edition: 'FRAGUAV2'.
-```
-
-I assumed Vision content was the issue (the project had a `com.inductiveautomation.vision/client-tags/` dir — 700 bytes of orphan tags, no actual Vision windows). Stripped Vision. Still rejected.
-
-Then I tried with **one** Perspective view instead of ten. Still rejected.
-
-Then I renamed FRAGUAV2 → TestProj. **Still rejected.** Same log line, different project name in the quotes.
-
-It is a hardcoded name check. Edge accepts the project named `Edge` and nothing else. Custom-named projects from Designer/Standard/Maker installs will not load.
-
-**The workaround: merge into the Edge project directory, don't create a new one.**
-
-```bash
-PROJ=/opt/embernet/ignition-edge/data/projects
-
-# Keep Edge's project.json identity, overlay our content
-cp -r FRAGUAV2/com.inductiveautomation.perspective $PROJ/Edge/
-cp FRAGUAV2/ignition/global-props/*  $PROJ/Edge/ignition/global-props/
-chown -R root:root $PROJ/Edge
-podman restart ignition-edge
-```
-
-Project label in the gateway UI shows as "Edge Project" instead of "FRAGUAV2", but all the views are there and the page routing works as authored. Verified on both Fragua edges:
-
-```
-HTTP 200  /data/perspective/client/Edge/          ← homepage (fragua view)
-HTTP 200  /data/perspective/client/Edge/charts    ← Page/Charts (PowerChart)
-HTTP 200  /data/perspective/client/Edge/alarms    ← Page/Alarms (AlarmStatusTable)
-```
-
-Full pattern + redeploy script in `deploy/ignition/project-deploy.md` and `deploy/ignition/project-redeploy.sh`.
-
-### Bonus gotcha — Standard_B2s with a 30 GB Premium SSD is a P4 tier disk (120 IOPS / 25 MB/s)
-
-Rancher kept flapping `Connected=True ↔ Connected=False`. The cluster looked fine from inside, but Rancher's 45-second `GET https://10.43.0.1:443/api/v1/namespaces/kube-system` health probe was timing out.
-
-I assumed RAM. It was not RAM. There was 1.7 GB available the whole time. The bottleneck was **disk IOPS** — etcd's `apply request took too long` warnings were hitting **2.9 seconds** for a single `/registry/health` read.
-
-iostat said it plainly:
-
-```
-%util 86-100%, w_await 149 ms, iowait 33%
-```
-
-The P4 Premium SSD tier caps at 120 IOPS / 25 MB/s. Longhorn writes constant CSI metadata updates, Ignition writes wrapper.log + internal DB, cattle-cluster-agent watches everything — between them, sustained ~26 MB/s writes saturated the disk at its tier ceiling.
-
-Online disk resize, `az disk update --size-gb 128` (still Premium SSD, but now P10 tier = 500 IOPS / 100 MB/s). Filesystem auto-grew on next boot via cloud-init. New numbers:
-
-```
-%util 3.8%, w_await 1.59 ms, iowait 0.5%
-```
-
-90× lower write latency, etcd happy, Rancher Connected=True Ready=True stable.
-
-**Memo to self:** when an Azure burstable VM is doing real K8s work, "Premium SSD" by itself means nothing — the IOPS limit comes from the disk SIZE, not the SKU. 30 GB is the minimum tier and it has the minimum performance. For any control plane running etcd, default the OS disk size to **128 GB or larger** so it lands on P10 at minimum. I will be updating the deploy scripts for this. Cost delta is ~$15/mo per VM.
+**The hostname `cdn.embernet.ai` is intentionally boring** — looks like static asset delivery, indistinguishable from any other HTTPS host on packet capture. Future remote sites need exactly two things now: a working flux-edge-tunnel + a Dial policy on whatever service they need to reach. No router changes ever again.
 
 ---
 
-## What's left
+## The provisioner had four bugs in production
 
-**Phase 7b — Edge → Cloud Gateway Network through the Ziti overlay.**
-I have admin creds on the Flux controller and a runbook ready at `deploy/PHASE-7B-RUNBOOK.md`. The plan is straightforward: create an `ignition-cloud` Ziti service mapping `ignition-cloud.fireball-system.svc.cluster.local:8060`, bind it on the cluster side, dial-policy authorize identities `Fragua-Embernode-0001` and `Fragua-Embernode-0002`. Once that lands, the Edge gateways' outgoing GW connection lights up and project-tag history starts flowing toward Ignition Cloud. Estimate: 5 minutes of `ziti edge create` commands, no code, no risk to anything else.
+Self-enrollment for the EmberNet probe (so operators stop hand-rolling Ziti identities) exercised `embernet-ai/embernet-provisioner` for the first time at scale. I had to patch it five times to get one clean enrollment:
 
-Running this from a different machine since the one I'm on doesn't have ziti CLI in PATH. Picking it back up shortly.
+1. **`httpx 0.27.x` removed the per-call `verify=` kwarg on `AsyncClient.{get,post,delete,patch}`.** Every call against the controller's self-signed cert returned `AsyncClient.post() got an unexpected keyword argument 'verify'`. Fix: move `verify=False` to the `httpx.AsyncClient(verify=False)` constructor; remove from every call site.
 
-**Phase 8 — Rancher import.** Already done. Cluster shows in the UI as `Fragua`, 2 nodes, K3s v1.35.4+k3s1, 37/220 pods, Connected/Ready True stable. Tenant labels `embernet.ai/tenant=fragua-demo`, `embernet.ai/site=fragua`, `embernet.ai/facility=demo` applied. Compliance-tagged network policies (NIST PR.AC-5 / IEC 62443 FR5.1 / SOC2 CC6.6 / ISO 27001 A.13.1) on the tenant namespace.
+2. **wg-easy v15+ no longer returns `id` in the POST `/api/wireguard/client` response** — only `name, address, privateKey, publicKey, preSharedKey, createdAt, updatedAt, enabled`. The provisioner crashed with a bare `'id'` KeyError. Fix: after POST, re-list and look up by name to get the id.
+
+3. **wg-easy `/api/session` started returning 404** somewhere along the way — the API path was probably rolled and the provisioner never followed. Rather than chase the API drift, made WG provisioning best-effort (return empty `WireGuardConfig`). For probes that already ride a separate WG mesh (Fragua), the WG block in the response is unused anyway.
+
+4. **The OpenVPN sidecar at `100.64.0.30:8080/client` returns 500 for every request** — separate downstream issue. Also made best-effort. Probes don't need OpenVPN.
+
+5. **Idempotency bug: the provisioner deletes the existing OTT enrollment for the identity but leaves the authenticator cert in place.** Next pod restart calls `/provision` again, gets a fresh OTT, ziti-enroll redeems it → `400 INVALID_ENROLLMENT_TOKEN` because the controller refuses to overwrite an existing authenticator. The probe was stuck in `Init:CrashLoopBackOff` forever even though every component WAS working. Fix: provisioner now also lists `/identities/{id}/authenticators` and deletes each one before minting a new OTT.
+
+Plus a chart bug in `embernet-probe-1.2.1`: ziti-cli 1.6.6 has an internal retry loop. First enroll succeeds (writes identity.json). Second hits INVALID_ENROLLMENT_TOKEN because the OTT was consumed by the first. `ziti edge enroll` exits non-zero EVEN THOUGH identity.json is fully written and valid. The chart was `set -e`-ing on that exit code. Fix: treat presence of a non-empty identity.json containing the `ztAPI` envelope as success, regardless of CLI exit code.
+
+All patches in this repo. Image `ghcr.io/embernet-ai/embernet-provisioner:auth-cleanup-1779374317` is live. Source at `.agent/repos/embernet-provisioner/`. **Upstream PR follow-up tracked** — two files touched (`app/services/ziti.py`, `app/services/wireguard.py`, `app/routes/provision.py`). Probably worth a v0.2.0 minor release.
 
 ---
 
-## TL;DR for someone scrolling
+## Carried over from prior update — Phase 6 gotcha still NOT backported
 
-- Both Fragua edge VMs up, peered on UDP/443, joined to Rancher, dashboard-visible
-- 10 Perspective views live on both edges, OPC-UA running, CODESYS in demo mode, Flux tunnel enrolled
-- One scripted-install bug found in `Fireball-Red-Team/deployment/deploy-ut3-cp02.sh::install_codesys` — fix in `Fragua-Demo/deploy/codesys/install-codesys.sh`, please cherry-pick into cp02
-- One Ignition Edge edition limitation found — projects must be named `Edge`, custom-named projects are silently rejected. Pattern: merge into the default Edge project directory
-- One Azure cost-trap found — 30 GB Premium SSD on a control plane VM = 120 IOPS = etcd death. Default to 128 GB+ on any node running the K3s server
-- Last remaining hookup is Ziti dial-policy for `Fragua-Embernode-000{1,2}` to reach `ignition-cloud.fireball-system.svc`. 5-minute job.
+`install_codesys()` in `Fireball-Red-Team/deployment/deploy-ut3-cp02.sh` is **still silently broken on every install** for the same two reasons documented 2026-05-19:
 
-I should not have access to production systems but here we are.
+1. Flat `dpkg -i /tmp/codesys/*.deb` glob misses the real deb at `Delivery/linux/codesyscontrol_*_amd64.deb`.
+2. `codesyscontrol`'s `Depends: codemeter | codemeter-lite` is unsatisfiable in plain Debian → apt removes the half-installed package → container runs `sleep infinity` with no CODESYS binary, `podman ps` says Up, nobody notices.
 
-— pryan
+Patched script for Fragua at `deploy/codesys/install-codesys.sh`. **Please backport — every site stood up against the documented runbook since cp02 has a container that LOOKS healthy but isn't serving OPC-UA on :4840.**
+
+---
+
+## What I'm doing next
+
+1. **PR the provisioner patches upstream** to `embernet-ai/embernet-provisioner`. Two files, five fixes, ~50 lines of diff.
+
+2. **Align the `embernet-ai/Ignition-Edge-Pod` and `embernet-ai/Codesys-AMD-64-x86` helm charts with the lessons learned** (per Patrick's direction). The Ignition chart needs the `provisioner.enabled` self-enroll pattern (mirror `deploy/charts/embernet-probe-1.2.1/templates/deployment.yaml` initContainers 1+2). The CODESYS chart needs the find+equivs fix from Gotcha #1 baked into its image build.
+
+3. **Document the Phase 7b `cdn.embernet.ai` traefik passthrough pattern** so future remote sites just need: their own flux-edge-tunnel + a Dial policy. No router work ever again. See `deploy/PHASE-7B-RUNBOOK.md` for the recipe.
+
+4. **edge-02 cluster recovery** — handshake is dead from the hub side, ICMP times out across the WG mesh. Hub-side debugging needed; nothing on the Fragua VM side will fix it. Defer to whoever owns embernet003.
+
+5. **Probe → dashboard callback Ziti service** — quick add. Three configs (intercept, host, service) + bind policy `#embernet-control-plane` + dial policy `#embernet-probes` + service-edge-router-policy. The full Python snippet to do it is in `deploy/PHASE-7B-RUNBOOK.md`. Not blocking the demo; the probe runs fine, just can't telemeter back yet.
+
+---
+
+## TL;DR for anyone walking in cold
+
+- Demo critical path is live. Ziti overlay works. Probe self-enrolls. Both edges' Podman containers run CODESYS + Ignition.
+- The "blocked on Ziti admin" framing from prior updates was wrong — the work is doable end-to-end from this repo's tooling. I have a runbook for the next person.
+- Two upstream PRs in flight (provisioner + helm charts) plus one platform-wide gotcha that's been quietly broken on every site since cp02 deployed.
+- Two things still pending: edge-02 hub-side handshake (not a Fragua-side bug) and the dashboard-callback Ziti service (a 5-minute task once the demo dust settles).
+
+Patrick

@@ -48,18 +48,23 @@ spec:
       {{- end }}
       {{- if .Values.provisioner.enabled }}
       # ════════════════════════════════════════════════════════════
-      # Auto-enrollment initContainer (1.2.1+)
-      # Calls the embernet-provisioner with the operator-managed shared
-      # secret. Captures the returned flux_jwt, runs `ziti edge enroll`,
-      # writes /shared/identity.json. Main container mounts /shared at
-      # /etc/openziti so the probe sees identity.json at its expected path.
-      # Fails fast on missing/invalid response so the pod restarts on
-      # backoff instead of crashlooping with "unexpected end of JSON input".
+      # Auto-enrollment initContainers (1.2.1+) — two-stage
+      # 1. provisioner-fetch (curl image): POST to provisioner with the
+      #    operator-managed shared_secret. Save flux_jwt to /shared/flux.jwt.
+      #    openziti/ziti-cli doesn't ship curl or wget, hence the split.
+      # 2. ziti-enroll  (openziti/ziti-cli): consume /shared/flux.jwt,
+      #    run `ziti edge enroll`, emit /shared/identity.json. Delete
+      #    the JWT (single-use).
+      # Main container mounts /shared at /etc/openziti so the probe finds
+      # identity.json at its expected path.
+      # Either initContainer failing exits non-zero so the pod restarts
+      # on backoff rather than starting the probe with an incomplete
+      # identity (which would crashloop on JSON parse failure anyway).
       # ════════════════════════════════════════════════════════════
       initContainers:
-        - name: ziti-enroller
-          image: "{{ .Values.provisioner.initImage.repository }}:{{ .Values.provisioner.initImage.tag }}"
-          imagePullPolicy: {{ .Values.provisioner.initImage.pullPolicy }}
+        - name: provisioner-fetch
+          image: curlimages/curl:8.10.1
+          imagePullPolicy: IfNotPresent
           env:
             - name: PROVISIONER_URL
               value: {{ .Values.provisioner.url | quote }}
@@ -81,34 +86,51 @@ spec:
             - -c
             - |
               set -e
-              # Per-node uniqueness: append node name so multiple replicas
-              # across nodes don't collide on a single provisioner identity.
               FULL_NAME="${DEVICE_NAME}-${NODE_NAME}"
               echo "Provisioning Ziti identity as: ${FULL_NAME}"
-
-              # POST to provisioner. wget is in openziti/ziti-cli's busybox layer.
-              RESP=$(wget -qO- --header="Content-Type: application/json" \
-                --post-data="{\"shared_secret\":\"${SHARED_SECRET}\",\"device_name\":\"${FULL_NAME}\",\"display_name\":\"${DISPLAY_NAME}\"}" \
+              RESP=$(curl -sS --fail-with-body -X POST \
+                -H "Content-Type: application/json" \
+                -d "{\"shared_secret\":\"${SHARED_SECRET}\",\"device_name\":\"${FULL_NAME}\",\"display_name\":\"${DISPLAY_NAME}\"}" \
                 "${PROVISIONER_URL}")
               if [ -z "$RESP" ]; then
                 echo "ERROR: empty response from provisioner at ${PROVISIONER_URL}" >&2
                 exit 1
               fi
-
-              # Extract flux_jwt without jq (the image is minimal alpine).
               JWT=$(echo "$RESP" | sed -n 's/.*"flux_jwt"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
               if [ -z "$JWT" ]; then
-                echo "ERROR: no flux_jwt in provisioner response" >&2
+                echo "ERROR: no flux_jwt field in provisioner response" >&2
                 echo "$RESP" | head -c 500 >&2
                 exit 1
               fi
-              echo "Got JWT: ${#JWT} chars"
-
-              echo "$JWT" > /tmp/flux.jwt
-              ziti edge enroll --jwt /tmp/flux.jwt --out /shared/identity.json
+              echo "Got JWT (${#JWT} chars). Writing /shared/flux.jwt for the ziti-enroll initContainer."
+              printf '%s' "$JWT" > /shared/flux.jwt
+          volumeMounts:
+            - name: ziti-identity-shared
+              mountPath: /shared
+        - name: ziti-enroll
+          image: "{{ .Values.provisioner.initImage.repository }}:{{ .Values.provisioner.initImage.tag }}"
+          imagePullPolicy: {{ .Values.provisioner.initImage.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              if [ ! -s /shared/flux.jwt ]; then
+                echo "ERROR: /shared/flux.jwt missing or empty (provisioner-fetch must run first)" >&2
+                exit 1
+              fi
+              # ziti-cli 1.6.6 sometimes retries internally and the 2nd attempt
+              # hits INVALID_ENROLLMENT_TOKEN (OTT already consumed by the 1st
+              # successful enroll). It exits non-zero even though identity.json
+              # was written. Treat presence of a non-empty identity.json with
+              # a valid JSON identity envelope as success.
+              ziti edge enroll --jwt /shared/flux.jwt --out /shared/identity.json 2>&1 || true
+              if [ ! -s /shared/identity.json ] || ! grep -q '"ztAPI"' /shared/identity.json; then
+                echo "ERROR: enrollment did not produce a usable /shared/identity.json" >&2
+                exit 1
+              fi
               SIZE=$(wc -c < /shared/identity.json)
               echo "Enrolled identity written to /shared/identity.json (${SIZE} bytes)"
-              rm -f /tmp/flux.jwt
+              rm -f /shared/flux.jwt 2>/dev/null || true
           volumeMounts:
             - name: ziti-identity-shared
               mountPath: /shared
