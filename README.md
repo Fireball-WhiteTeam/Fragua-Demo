@@ -1,190 +1,217 @@
-# Fragua — EmberNet Industrial Platform Reference Deployment
+# 🤙 Fragua Demo — EmberNet on a Real Customer Edge
 
-> **Author:** Patrick Ryan, CTO — Fireball Industries
-> **Stack:** Azure × 2, K3s, WireGuard, OpenZiti (Flux), CODESYS Control SL, Ignition Edge 8.3, EmberNet Network Probe, Rancher import, Industrial Dashboard tenancy
-> **Footprint:** Two `Standard_D2as_v4` VMs across two Azure regions. That's the entire customer-side edge.
+> **Two Azure VMs. One repo. Zero open ports they didn't ask for.**
+
+**Built by:** Patrick Ryan, CTO @ Fireball Industries 🔥
+
+**Stack:** Azure × 2 · K3s 1.35 · WireGuard on UDP/443 · OpenZiti via Flux overlay · CODESYS Control SL · Ignition Edge 8.3 · EmberNet Network Probe · Rancher import · Industrial Dashboard tenancy
+
+**Footprint:** Two `Standard_D2as_v4` VMs across two Azure regions. That's the entire customer-side edge.
 
 ---
 
-This repo is the deployment artifact + audit trail for **Fragua**, a Fireball-customer-shaped reference deployment of the EmberNet platform onto a deliberately tiny edge footprint. Two Azure VMs, opposite-coast regions, joined into the EmberNet central control plane via Rancher import and the ArcNet (WireGuard) management network. Each VM runs a CODESYS PLC runtime + Ignition Edge gateway + Network Probe pod, all reaching back to EmberNet Cloud over the Flux/OpenZiti zero-trust overlay.
+## What This Is
 
-It exists because every prior site-onboarding doc we had read like "step 1: ssh in, step 2: do an undocumented dance for 90 minutes, step 3: discover the platform CRD changed two minor versions ago." If a customer asks what it takes to stand a Fragua-shaped edge up from cold metal, the answer is: this repo, plus the chart upgrades it forced upstream (provisioner + probe + Ignition Edge + CODESYS — PRs filed back into `embernet-ai/*`).
+Fragua is a **reference deployment of EmberNet on the smallest justifiable customer-shaped edge** — two VMs, opposite-coast Azure regions, joined to the EmberNet central control plane via Rancher import and the ArcNet (WireGuard) management network. Each edge runs a CODESYS PLC runtime + Ignition Edge gateway + Network Probe pod, all dialing back to EmberNet Cloud over the Flux/OpenZiti zero-trust overlay.
 
-Demo customer name "Fragua" is a placeholder. Pick whoever you're selling to next and re-skin the tenant.
+The name "Fragua" is a placeholder — re-skin the tenant for whichever customer you're pitching next. The bones don't change.
 
-## What's actually wired up
+**Why this repo exists:** If a customer asks *"what does it actually take to stand a site up from cold metal?"*, the answer is this repo plus the four upstream PRs it forced — not a 6-week services engagement.
+
+---
+
+## Architecture
 
 ```
-                       Internet (public)
-                              │
-              flux.embernet.ai:443           cdn.embernet.ai:443
-              (Ziti controller)              (Ziti router, SNI passthrough)
-                              │
-                         Azure LB
-                              │
-                       ┌──────┴───────────────┐
-                       │  EmberNet Central    │
-                       │  ───────────────     │
-                       │  • K3s control plane │
-                       │  • Industrial        │
-                       │     Dashboard        │
-                       │  • Ignition Cloud    │
-                       │  • Flux controller   │
-                       │  • Rancher           │
-                       └──────────────────────┘
-                              │
-            WireGuard mesh ── UDP/443 → hub: embernet003
-                              │
-              ┌───────────────┴───────────────┐
-              │                               │
-       fragua-edge-01 (eastus2)         fragua-edge-02 (centralus)
-       ───────────────────────         ───────────────────────
-       • K3s server                    • K3s agent
-       • flux-edge-tunnel (Ziti)       • flux-edge-tunnel (Ziti)
-       • CODESYS Control SL (Podman)   • CODESYS Control SL (Podman)
-       • Ignition Edge 8.3 (Podman)    • Ignition Edge 8.3 (Podman)
-       • EmberNet Network Probe        • (probe + endpoint controller)
-       • Endpoint Controller (TBD)     • Endpoint Controller (TBD)
-              │                               │
-              ▼                               ▼
-       Downstream OT LAN              Downstream OT LAN
-       (real customer site:           (real customer site:
-       PLCs, HMIs, drives,             cell controllers, RTUs,
-       sensors, OPC servers)           switches, IPCs)
+                       Internet
+                            │
+          flux.embernet.ai:443           cdn.embernet.ai:443
+          (Ziti controller)              (Ziti router — SNI passthrough,
+                                          looks like a CDN by design)
+                            │
+                       Azure LB
+                            │
+                     ┌──────┴──────────────┐
+                     │  EmberNet Central   │
+                     │  ─────────────────  │
+                     │  • K3s control plane│
+                     │  • Industrial       │
+                     │    Dashboard        │
+                     │  • Ignition Cloud   │
+                     │  • Flux controller  │
+                     │  • Rancher          │
+                     └─────────────────────┘
+                            │
+          WireGuard mesh ── UDP/443 → hub: embernet003
+                            │
+            ┌───────────────┴───────────────┐
+            │                               │
+     fragua-edge-01 (eastus2)        fragua-edge-02 (centralus)
+     ───────────────────────          ───────────────────────
+     • K3s server                    • K3s agent
+     • flux-edge-tunnel (Ziti)       • flux-edge-tunnel (Ziti)
+     • CODESYS Control SL (Podman)   • CODESYS Control SL (Podman)
+     • Ignition Edge 8.3 (Podman)    • Ignition Edge 8.3 (Podman)
+     • EmberNet Network Probe        • EmberNet Network Probe
+     • Endpoint Controller (TBD)     • Endpoint Controller (TBD)
+            │                               │
+            ▼                               ▼
+     Downstream OT LAN               Downstream OT LAN
+     (PLCs, HMIs, drives,            (cell controllers, RTUs,
+     sensors, OPC servers —          switches, IPCs —
+     the real customer's             the real customer's
+     expensive 1996 hardware)        slightly newer 2004 hardware)
 ```
 
-Two regions on purpose. Region-pair failover stories are easier to tell when the topology is asymmetric. Centralus + eastus2 also happens to be the path most of our existing customers fall on — east coast HQ, central US manufacturing.
+Two regions on purpose. Region-pair failover is an easier story to tell when the topology is already asymmetric. East + Central also maps to where most industrial customers actually live — east-coast HQ, central-US manufacturing floor.
 
-## What you have to install BEFORE the user can do anything
+---
 
-By the time anyone hits the dashboard expecting a populated tenant view, all of the following have already happened. Your engineers don't open tickets for these; they own them.
+## Pre-Requisites — What Must Be Done Before Anyone Touches the Dashboard
 
-| # | Thing | Owner | Where it lives | Notes |
-|---|---|---|---|---|
-| 1 | Azure VMs provisioned, WG keys exchanged, both edges peered into the hub | Platform | `deploy/wireguard/` | Two configs, hub peer additions, NSG inbound `UDP/443` for WG, `TCP/443` for Flux. |
-| 2 | K3s 1.35.4+k3s1 on both edges (server on -01, agent on -02), Longhorn, cert-manager, ghcr-secret replicated | Platform | `deploy/k3s/` | Use `overlayfs` snapshotter. NOT `overlay`. The k3s containerd build does not accept that string. We learned the hard way. |
-| 3 | Flux/Ziti identities enrolled per edge via JWT, flux-edge-tunnel chart `v2.0.8` deployed | Platform | `deploy/flux/` | Identity persisted on Longhorn RWX so the pod survives restart without re-enroll. |
-| 4 | Rancher cluster import (cluster id `c-j7gtg`, displayName `Fragua`) | Platform | `deploy/rancher/` | Set `agent-tls-mode=system-store` globally on Rancher OR the cattle-cluster-agent will CrashLoopBackOff against K3s. |
-| 5 | CODESYS Control SL 4.20 + Ignition Edge 8.3.6 deployed via Podman on each edge | Platform | `deploy/codesys/`, `deploy/ignition/` | Either Podman (current Fragua-Demo) or via the helm charts in `deploy/charts/` (use those once the upstream PRs land). |
-| 6 | Industrial Dashboard Tenant CR + node labels | Platform | `deploy/dashboard/tenant.yaml` | Without the Tenant CR you import into Rancher fine but never appear in the dashboard tenant dropdown. Apply the CR + roll the dashboard deployment to pick it up. |
-| 7 | **EmberNet Endpoint Controller** | **Fireball engineering** | Forthcoming helm chart | Lands on each edge as a container or DaemonSet. Owns downstream OT network discovery, claims devices into the tenant, normalizes them as Modbus/EtherNet-IP/OPC-UA/etc., publishes them as Ignition tags + dashboard inventory rows. This is the piece that turns "two random VMs running PLCs" into "a customer site the dashboard actually knows about." |
+All seven of these need to be in place before the user-facing experience kicks in. If one isn't done, the user sees an empty dropdown and wonders where their site went.
 
-Once all seven are in place, the user-facing experience kicks in.
+| # | What | Owner | Location | Notes |
+|---|------|-------|----------|-------|
+| 1 | Azure VMs provisioned, WG keys exchanged, both edges peered into the hub | Platform | `deploy/wireguard/` | NSG inbound `UDP/443` for WG, `TCP/443` for Flux. **No UDP/51820 — that fight is over. We use 443.** |
+| 2 | K3s 1.35.4+k3s1 on both edges (server on -01, agent on -02), Longhorn, cert-manager, ghcr-secret replicated | Platform | `deploy/k3s/` | Snapshotter is `overlayfs` — **not** `overlay`. The k3s containerd build does not accept that string. Writing it down so you learn it quietly instead of loudly. |
+| 3 | Flux/Ziti identities enrolled per edge via JWT, flux-edge-tunnel chart `v2.0.8` deployed | Platform | `deploy/flux/` | Identity persisted on **Longhorn RWX**, not local disk, not emptyDir. Pod restarts without this = re-enroll = new JWT = ticket. |
+| 4 | Rancher cluster import (cluster id `c-j7gtg`, displayName `Fragua`) | Platform | `deploy/rancher/` | Set `agent-tls-mode=system-store` globally on Rancher **before** importing, or cattle-cluster-agent CrashLoopBackOffs against K3s. I already spent that afternoon. You're welcome. |
+| 5 | CODESYS Control SL 4.20 + Ignition Edge 8.3.6 via Podman on each edge | Platform | `deploy/codesys/`, `deploy/ignition/` | Podman for this demo. Once upstream chart PRs land, this can be done via Helm. |
+| 6 | Industrial Dashboard Tenant CR + node labels applied | Platform | `deploy/dashboard/tenant.yaml` | Skip this and the dashboard tenant dropdown stays empty no matter how clean the Rancher import looks. Apply the CR. Roll the dashboard deployment. Move on. |
+| 7 | **EmberNet Endpoint Controller** | **Fireball engineering** | Forthcoming Helm chart | Owns downstream OT discovery, claims devices into the tenant, normalizes Modbus/EtherNet-IP/OPC-UA for Ignition and the dashboard. Without this, the edges are just two VMs running PLCs in the void. |
 
-## How a user interacts with this — Dashboard side
+---
 
-The user opens `https://dashboard.embernet.ai`, signs in via Azure AD SSO, and the dashboard drops them at the tenant selector. They pick **Fragua (Demo)** (or whatever you re-skinned the tenant to). What they see and what they can do:
+## Dashboard — User-Facing Flow
 
-### Global Command (SuperAdmin only)
-Top of the nav. Shows all tenants, downstream clusters, App Store catalog, fleet-wide ops. If you're showing this to a customer, you're either inviting them in as a partner or you're flexing. Both legitimate.
+User opens `https://dashboard.embernet.ai`, signs in via Azure AD SSO, selects the **Fragua (Demo)** tenant. From there:
 
-### Tenant home
-Once a tenant is selected, the home view shows:
+### Global Command *(SuperAdmin only)*
+Top of the nav. Every tenant, every downstream cluster, the App Store catalog, fleet-wide ops. Show this to a customer only if you're onboarding them as a partner or you're deliberately flexing.
 
-- **Nodes pane** — every K3s node that has `embernet.ai/tenant=fragua-demo` labeled. For Fragua: `fragua-edge-01` (control plane) and `fragua-edge-02` (edge worker). Each card shows CPU/RAM/pod count, last-seen, the tenant-name + node-type + onboarded-at labels you wrote in.
-- **Sites + facilities** — Fragua has one facility, "demo". You can break it down further (`embernet.ai/building=`, `embernet.ai/cell=`) if the customer has a multi-building layout. Trane has 200+. Fragua has one.
-- **Apps deployed** — anything from the App Store that's running anywhere in the tenant. Click a tile, you get the standard helm release page + a "Logs" / "Shell" / "Restart" trio.
+### Tenant Home
+- **Nodes pane** — every K3s node tagged `embernet.ai/tenant=fragua-demo`. For Fragua that's `fragua-edge-01` (control plane) and `fragua-edge-02` (edge worker). Each card shows CPU/RAM/pod count, last-seen, and the tenant/node-type/onboarded-at labels. If a card looks wrong, the labels are wrong — fix the labels, not the dashboard.
+- **Sites + Facilities** — Fragua has one facility, "demo." Larger customers (Trane with 200+ sites) get the full multi-building/multi-cell breakdown via `embernet.ai/building=` / `embernet.ai/cell=`. One facility. Don't overthink it.
+- **Apps Deployed** — anything from the App Store running anywhere in the tenant. Click a tile → standard Helm release page → Logs / Shell / Restart. It's well-wrapped Rancher.
 
-### Click a node
-A node card opens a side panel with:
+### Node Detail Panel
+Click any node card to open:
 
-- Live metrics (CPU, RAM, disk, network — pulled from cattle-monitoring stack + node-exporter)
-- **Shell button** — opens a WebSocket terminal session into the node via Rancher's proxy API. Authentication carries through from Azure AD, so the customer's audit log shows who SSH'd in. No password reuse, no shared keys.
-- **Apps on this node** — list of pods running locally
-- **Deploy an App** — opens the App Store filtered to "compatible with this node" (arch, kernel, edition, resource budget). Click `Ignition Edge`, `nodered`, `n8n`, `Grafana-Loki`, whatever. Behind the scenes, for External tenants (like Fragua), the deployment is a Fleet Bundle that propagates through Rancher Fleet down to the imported cluster. The user doesn't see Fleet. They click "Install."
+- **Live metrics** — CPU, RAM, disk, network via cattle-monitoring + node-exporter
+- **Shell** — WebSocket terminal into the node via Rancher's proxy API. Auth flows from Azure AD, so the audit log shows *who* connected — not "shared SSH key #7." No password reuse.
+- **Apps on this node** — locally running pods
+- **Deploy an App** — App Store filtered to compatible apps for this node (arch, kernel, edition, resource budget). For External tenants like Fragua, deployment is a Fleet Bundle propagating via Rancher Fleet to the imported cluster. The user clicks **Install**. They never need to know what GitOps is.
 
-### Live data widgets
-The dashboard's tag-history widgets pull from the central InfluxDB (bucket `industrial_raw`, org `embernet`). Ignition Edge on each Fragua VM is writing into that bucket via the store-and-forward historian over the Flux/Ziti tunnel. Drag a tag onto a widget, you get a 1-minute / 1-hour / 30-day historical chart with no extra setup. The pipeline is:
+### Live Data Widgets
+Tag-history widgets pull from central InfluxDB (`bucket: industrial_raw`, `org: embernet`). Ignition Edge writes into that bucket via store-and-forward historian over the Flux/Ziti tunnel.
 
 ```
 CODESYS runtime → OPC-UA (localhost:4840 on the edge)
-       → Ignition Edge tag provider (consumes the OPC-UA tags)
-       → Ignition Edge store-and-forward historian (buffers locally if offline)
+       → Ignition Edge tag provider
+       → Ignition Edge store-and-forward historian  (buffers locally if offline)
        → Outgoing Gateway Network connection (encrypted Ziti tunnel)
-       → Ignition Cloud (running in EmberNet Central as a pod)
+       → Ignition Cloud (EmberNet Central, pod in fireball-system)
        → InfluxDB writer
        → Dashboard widgets
 ```
 
-If the customer's internet is out, the Edge buffers locally on Longhorn-backed PVCs. When it comes back up, the historian flushes the queue. You don't lose data unless the VM disk dies, and you have Longhorn replicas to address that.
+Customer internet dies? Edge buffers locally on Longhorn-backed PVCs. Connection restored? Historian flushes the queue. No data loss unless the VM disk dies, and Longhorn replicas handle that. **This is by design, not by luck.**
 
-### Alerts + alarms
-Each tenant has scoped alarm visibility. Fragua sees Fragua alarms only — even though everything's in the same InfluxDB bucket, the dashboard enforces the tenant filter at query time. Alarms are configured in Ignition (Edge-side for local, Cloud-side for tenant-wide).
-
-## How a user interacts with this — CODESYS side
-
-CODESYS Control SL is the Linux runtime sitting inside a Podman container on each edge. Demo mode runs in a 30-minute cycle when no license is installed; activate a license in production. The OPC-UA server inside the runtime listens on `:4840` on the host network (the container is `--network=host`).
-
-Engineers do not log into the edge VM to write PLC code. They sit at a Windows workstation with the CODESYS Development System IDE installed (also free).
-
-### Setup, one-time per engineer
-1. Install CODESYS Development System 3.5.20+ on a Windows workstation.
-2. **Gateway address:** point at the edge VM's WireGuard IP. For Fragua that's `100.64.0.30` (edge-01) and `100.64.0.31` (edge-02). The engineer's workstation needs a WG tunnel back to the EmberNet hub OR a ZeroTier session — whichever your customer's IT team is comfortable with. The dashboard's Shell session doesn't help here; CODESYS speaks its own protocol on `:11740`.
-3. **Username / password:** the gateway's bootstrap credentials. We document the demo values in `.agent/CREDENTIALS.md` (gitignored, don't share). Rotate these in production.
-
-### Day-to-day workflow
-1. Open or create a CODESYS project.
-2. Communications → Scan Network → the edge VM gateway shows up as `Ignition-fragua-edge-01` or similar (whatever hostname is set inside the runtime). Double-click to connect.
-3. Build (F11) → Login (Alt+F8) → Download. Code is live on the runtime in <5 seconds for normal-sized projects.
-4. Use the watch window to verify tags. Online change works.
-5. Once you're happy, expose the variables you want to share with Ignition by tagging them as **OPC-UA visible** in the symbol configuration. They appear under the OPC-UA server's namespace.
-
-### What CODESYS gives you that's actually useful for industrial work
-- **IEC 61131-3** full set of languages (ST, FBD, LD, SFC, IL) — you're not stuck with one
-- **Soft-PLC scan times** of <1ms when you stay off the GIL-equivalent (i.e., don't do file IO from a cyclic task)
-- **Field bus support** — when the Endpoint Controller wires up Modbus / EtherNet/IP / Profinet / EtherCAT downstream, the runtime can poll them at scan-cycle rate. CODESYS isn't OPC-UA-only.
-- **Visualization** — there's a built-in HMI (CODESYS Visualization). Honestly: skip it. Use Ignition Perspective for HMI. CODESYS Vis hasn't aged well.
-
-### Where it talks to Ignition
-- OPC-UA at `opc.tcp://localhost:4840` on the same host. Ignition Edge's OPC UA Module is configured at install time to consume that endpoint. Tags flow Ignition-side automatically.
-- Modbus, S7, EtherNet/IP, etc. are also exposed by CODESYS as native protocols if you have downstream slaves. The Endpoint Controller's whole job is to bridge those upstream into the dashboard's device inventory.
-
-## How the Ignition Edge ↔ Ignition Cloud relationship works
-
-Ignition Edge on each Fragua VM is a **Gateway Network outbound dialer** to Ignition Cloud (running as a Kubernetes pod in EmberNet Central, namespace `fireball-system`). Configuration on the Edge side:
-
-- **Outgoing Connection target:** `100.65.0.1:8060` — that's the Ziti synthetic IP for the `ignition-cloud` overlay service. The Fragua flux-edge-tunnel pod intercepts that TCP destination via iptables tproxy and routes the connection through the Ziti tunnel out to `cdn.embernet.ai:443`, where traefik does SNI passthrough into the flux-router and then on to cp005, which terminates the inner connection at the actual Ignition Cloud K8s service.
-- **No SSL on the inner connection.** The Ziti overlay handles encryption end-to-end. Layering TLS on top inside the tunnel is double-encryption and burns CPU for no benefit.
-- **No outbound port exposure on the OT firewall side.** The only outbound the customer firewall has to allow is UDP/443 (the WireGuard mgmt tunnel) and TCP/443 (the Ziti dial path). If their firewall doesn't allow outbound 443 they have bigger problems than not running EmberNet.
-
-Once Edge dials Cloud and Cloud approves the incoming connection (auto-approve is configurable; manual is safer for new sites), tag history starts flowing. The first cycle is usually a flood as the Edge backfills whatever sat in its store-and-forward queue while it was unconnected. Subsequent cycles are deltas.
-
-## Quick-reference
-
-| Thing | Address |
-|---|---|
-| Industrial Dashboard | `https://dashboard.embernet.ai` |
-| Rancher | `https://clusters.embernet.ai` (cluster `c-j7gtg` = Fragua) |
-| Ziti controller (mgmt + client auth) | `flux.embernet.ai:443` |
-| Ziti router (data plane) | `cdn.embernet.ai:443` — looks like a CDN by design |
-| Ignition Cloud K8s svc | `ignition-cloud.fireball-system.svc.cluster.local:8060` |
-| Ignition Edge web UI | `http://20.80.241.221:8088` (fragua-edge-01) / `http://52.176.39.25:8088` (fragua-edge-02) |
-| CODESYS gateway | `:11740` on each edge's WG IP (100.64.0.30 / 100.64.0.31) |
-| CODESYS OPC-UA | `:4840` on each edge's WG IP |
-| Network Probe | runs in K3s namespace `fireball-system`, exposes `:8080` via Ziti to dashboard |
-| Provisioner (self-enroll JWT issuer) | `https://provisioner.embernet.ai/api/v1/provision` |
-| Credentials | `.agent/CREDENTIALS.md` (gitignored, don't share) |
-
-## What this repo also produced (lessons-learned, upstream)
-
-Standing this up surfaced four upstream issues that we fixed and pushed back so the next site doesn't eat the same bugs:
-
-- `Embernet-ai/embernet-provisioner#1` — **five** runtime fixes (httpx 0.27 verify-kwarg removal, wg-easy v15 `id`-on-create response shape change, wg-easy `/api/session` 404, OpenVPN sidecar 500, idempotent authenticator-cleanup across pod restarts)
-- `Embernet-ai/Ignition-Edge-Pod#1` — opt-in self-enrollment via the provisioner (`provisioner.enabled=true`) using the same init-container pattern as the probe chart
-- `Embernet-ai/Codesys-AMD-64-x86#1` — install hardening: equivs-built `codemeter-lite` shim, drop the `apt-get install -f -y` fallback that silently removed `codesyscontrol`, hard post-install assertion that the binary exists. Same fix needed to be backported to the `cp02` Containerfile — every cp02 deployment to date is silently running `sleep infinity` with no PLC runtime present. Yes, really.
-- Phase 7b — full WireGuard / iptables / Ziti router / cert-SAN / traefik SNI passthrough recipe documented at `deploy/PHASE-7B-RUNBOOK.md`. The "blocked on Ziti admin" framing from prior sites was wrong; the work is doable end-to-end from this repo's tooling.
-
-Documents in this repo worth reading before doing the next site:
-
-- `deploy/AUDIT.md` — phase-by-phase status + every gotcha we hit and how we fixed it
-- `deploy/PHASE-7B-RUNBOOK.md` — Ziti overlay setup, top to bottom
-- `deploy/wireguard/ENGINEER-FIX.md` and `AWS-RECOVERY.md` — WG convention writeups for the cross-cloud mesh
-- `deploy/CLICKUP-UPDATE.md` — status update at handoff time
-- `deploy/dashboard/tenant.yaml` — Tenant CR to make a new site visible in the dashboard
-- `deploy/charts/embernet-probe-1.2.1/` — fork of the upstream probe chart with the self-enroll pattern
+### Alerts + Alarms
+Each tenant has scoped alarm visibility. Fragua sees Fragua alarms only — the dashboard enforces tenant filtering at query time even though everything lands in the same InfluxDB bucket. Alarms configured in Ignition (Edge-side for local, Cloud-side for tenant-wide).
 
 ---
 
-*Fragua is what we point at when someone asks "show me what a real customer edge looks like" and we want to answer without booking 90 minutes. Two VMs. One repo. Everything else is documented.*
+## CODESYS — Engineer Workflow
 
-— Patrick
+CODESYS Control SL runs as a Linux runtime inside a Podman container on each edge. Without a license it cycles in 30-minute demo windows — license it in production.
+
+**Engineers do not SSH into the edge VM to write PLC code.** They sit at a Windows workstation with CODESYS Development System IDE installed (free, `codesys.com`). The runtime is a remote gateway, not a local IDE host.
+
+### One-Time Per Engineer
+1. Install CODESYS Development System 3.5.20+ on a Windows workstation.
+2. **Gateway address:** edge VM's WireGuard IP — `100.64.0.30` (edge-01) or `100.64.0.31` (edge-02). Workstation needs a WG tunnel to the EmberNet hub or a ZeroTier session. CODESYS speaks its own protocol on `:11740` — the dashboard Shell doesn't help here.
+3. **Credentials:** bootstrap creds are in `.agent/CREDENTIALS.md` (gitignored). **Rotate in production.** Yes, even for the demo. Yes, even if it's "just internal."
+
+### Day-to-Day Workflow
+1. Open or create a CODESYS project.
+2. **Communications → Scan Network** — edge gateway appears as `Ignition-fragua-edge-01`. Double-click to connect.
+3. **Build (F11) → Login (Alt+F8) → Download.** Code is live on the runtime in under 5 seconds for normal-sized projects.
+4. Watch window to verify tags. Online change works — don't be afraid of it.
+5. Expose tags to Ignition by marking variables as **OPC-UA visible** in the symbol config. They appear under the OPC-UA server namespace, ready for Ignition to consume.
+
+### What CODESYS Gives You
+- **IEC 61131-3** — full language set: ST, FBD, LD, SFC, IL. Mix them.
+- **Soft-PLC scan times under 1ms** — as long as you stay out of cyclic tasks with file IO.
+- **Fieldbus support** — Modbus / EtherNet-IP / Profinet / EtherCAT at scan-cycle rate once the Endpoint Controller wires the downstream side.
+- **Built-in HMI (CODESYS Visualization)** — skip it. Use Ignition Perspective. CODESYS Vis has not aged well and I will die on this hill.
+
+### CODESYS ↔ Ignition
+- OPC-UA at `opc.tcp://localhost:4840` on the same host. Ignition Edge's OPC-UA Module is configured at install to consume that endpoint — tags flow automatically.
+- Modbus / S7 / EtherNet-IP also exposed by CODESYS as native protocols for downstream devices. Bridging those upstream into the dashboard device inventory is the Endpoint Controller's job.
+
+---
+
+## Ignition Edge ↔ Ignition Cloud — How It Actually Works
+
+Ignition Edge on each Fragua VM is a **Gateway Network outbound dialer** to Ignition Cloud (`fireball-system` namespace, EmberNet Central).
+
+- **Outgoing connection target:** `100.65.0.1:8060` — the Ziti synthetic IP for the `ignition-cloud` overlay service. The flux-edge-tunnel pod intercepts via iptables tproxy, routes through the Ziti tunnel out to `cdn.embernet.ai:443`, where Traefik does SNI passthrough into the flux-router → cp005 → Ignition Cloud K8s service. Six hops. They all work.
+- **No SSL on the inner connection.** Ziti handles end-to-end encryption. Double-wrapping TLS just burns CPU.
+- **No inbound firewall exposure on the OT side.** Customer firewall needs outbound **UDP/443** (WireGuard mgmt) and **TCP/443** (Ziti dial). That's it. If a customer blocks outbound 443, they have bigger problems than not running EmberNet.
+
+First successful Edge → Cloud handshake triggers a backfill of whatever sat in store-and-forward while unconnected. Subsequent cycles are deltas. The pipeline self-heals.
+
+---
+
+## Quick Reference
+
+| Resource | Address |
+|----------|---------|
+| Industrial Dashboard | `https://dashboard.embernet.ai` |
+| Rancher | `https://clusters.embernet.ai` (cluster `c-j7gtg` = Fragua) |
+| Ziti Controller | `flux.embernet.ai:443` |
+| Ziti Router (data plane) | `cdn.embernet.ai:443` |
+| Ignition Cloud K8s svc | `ignition-cloud.fireball-system.svc.cluster.local:8060` |
+| Ignition Edge UI (edge-01) | `http://20.80.241.221:8088` |
+| Ignition Edge UI (edge-02) | `http://52.176.39.25:8088` |
+| CODESYS Gateway | `:11740` on WG IPs `100.64.0.30` / `100.64.0.31` |
+| CODESYS OPC-UA | `:4840` on WG IPs `100.64.0.30` / `100.64.0.31` |
+| Network Probe | `fireball-system` namespace, `:8080` via Ziti to dashboard |
+| Provisioner | `https://provisioner.embernet.ai/api/v1/provision` |
+| Credentials | `.agent/CREDENTIALS.md` — gitignored, do not commit, do not paste in Slack |
+
+---
+
+## Upstream PRs This Deployment Produced
+
+Standing this up surfaced four bugs that got fixed and pushed back so the next site doesn't eat them.
+
+- **`Embernet-ai/embernet-provisioner#1`** — Five runtime fixes: httpx 0.27 `verify=` kwarg removal, wg-easy v15 `id`-on-create response shape change, wg-easy `/api/session` 404 handling, OpenVPN sidecar 500 handling, idempotent authenticator-cleanup across pod restarts.
+- **`Embernet-ai/Ignition-Edge-Pod#1`** — Opt-in self-enrollment via the provisioner (`provisioner.enabled=true`), using the same init-container pattern as the probe chart for consistency.
+- **`Embernet-ai/Codesys-AMD-64-x86#1`** — Install hardening: equivs-built `codemeter-lite` shim, removed the `apt-get install -f -y` fallback that *silently* removed `codesyscontrol`, added hard post-install assertion the binary exists. **⚠️ This same fix needs to be backported to the `cp02` Containerfile** — every cp02 deployment to date is silently running `sleep infinity` with no PLC runtime present.
+- **Phase 7b end-to-end runbook** — Full WireGuard / iptables / Ziti router / cert-SAN / Traefik SNI passthrough recipe at `deploy/PHASE-7B-RUNBOOK.md`.
+
+---
+
+## Docs
+
+| Doc | Purpose |
+|-----|---------|
+| [`deploy/AUDIT.md`](deploy/AUDIT.md) | Phase-by-phase status + every gotcha, how it was fixed |
+| [`deploy/PHASE-7B-RUNBOOK.md`](deploy/PHASE-7B-RUNBOOK.md) | Ziti overlay end-to-end |
+| [`deploy/wireguard/ENGINEER-FIX.md`](deploy/wireguard/ENGINEER-FIX.md) | WG convention writeup — read before touching `wg0.conf` |
+| [`deploy/wireguard/AWS-RECOVERY.md`](deploy/wireguard/AWS-RECOVERY.md) | Cross-cloud mesh recovery |
+| [`deploy/CLICKUP-UPDATE.md`](deploy/CLICKUP-UPDATE.md) | Status update at handoff |
+| [`deploy/dashboard/tenant.yaml`](deploy/dashboard/tenant.yaml) | Tenant CR — apply this to make a new site appear in the dashboard |
+| [`deploy/charts/embernet-probe-1.2.1/`](deploy/charts/embernet-probe-1.2.1/) | Probe chart fork with self-enroll baked in |
+| [`INDEX.md`](INDEX.md) | Full resource lookup table |
+
+Open this README for the narrative. Open `INDEX.md` for the lookup table.
+
+---
+
+*Two VMs. One repo. Everything else is documented. If you're reading this, you're either onboarding a site, auditing the deployment, or both at 3 AM. Either way — welcome.*
+
+— **Patrick** 🤙
