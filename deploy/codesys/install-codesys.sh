@@ -10,7 +10,7 @@ warn() { echo "[$(date -Is)] WARN: $*" >&2; }
 
 CODESYS_URL="https://github.com/Embernet-ai/codesys-linux-x86/releases/download/v4.20.0.0/CODESYS.Control.for.Linux.SL.4.20.0.0.package"
 BUILD_DIR="/tmp/codesys-build"
-IMAGE_TAG="localhost/embernet/codesys-sl:4.20.0.0"
+IMAGE_TAG="localhost/embernet/codesys-sl:4.20.0.0-hardened"
 DATA_DIR="/opt/embernet/codesys/data"
 
 # Gate: skip if already running
@@ -97,8 +97,18 @@ RUN ls -la /opt/codesys/ 2>/dev/null | head -20 && \
     (echo "BINARY MISSING — searching..." && find / -name 'codesyscontrol*' -type f 2>/dev/null | head -20 && exit 1)
 
 # Entrypoint: launch the runtime. No license → demo mode (30-min cycles).
-RUN printf '#!/bin/bash\nfor b in /opt/codesys/bin/codesyscontrol.bin /usr/bin/codesyscontrol; do\n  [ -x "$b" ] && exec "$b" /etc/CODESYSControl.cfg\ndone\nexec sleep infinity\n' > /entrypoint.sh && chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+# Path + workdir verbatim from /etc/init.d/codesyscontrol:17,20,65 of
+# the shipped .deb:
+#   EXEC=/opt/codesys/bin/codesyscontrol.bin
+#   WORKDIR=/var/opt/codesys
+#   CONFIGFILE=/etc/codesyscontrol/CODESYSControl.cfg
+#   cd $WORKDIR && ( $DAEMON $DAEMON_ARGS $EXEC $CONFIGFILE $ARGS ... )
+# The prior entrypoint pointed at /etc/CODESYSControl.cfg (wrong path,
+# never existed) AND had an `exec sleep infinity` fallback — that's
+# exactly how cp02 ran "Up" with no PLC runtime for 9 days. Removed
+# the fallback so missing binary = crash-loop = visible Failed status.
+WORKDIR /var/opt/codesys
+ENTRYPOINT ["/opt/codesys/bin/codesyscontrol.bin", "/etc/codesyscontrol/CODESYSControl.cfg"]
 DOCKERFILE
 
   if ! podman build -t "${IMAGE_TAG}" "${BUILD_DIR}"; then
