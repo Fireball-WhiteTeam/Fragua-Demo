@@ -1,4 +1,23 @@
-# embernet-probe 1.2.1 (Fragua fork)
+# embernet-probe 1.2.1 (Fragua fork) — ⚠️ SUPERSEDED
+
+> **Status (2026-05-27):** This local fork is superseded by the canonical
+> [`Embernet-ai/Network-Probe`](https://github.com/Embernet-ai/Network-Probe)
+> chart at **v1.4.0+**. The provisioner-init pattern this fork added has
+> been ported upstream. Use the canonical chart for all new installs:
+>
+> ```bash
+> helm repo add embernet-probe https://embernet-ai.github.io/Network-Probe/
+> helm repo update
+> helm install embernet-probe embernet-probe/embernet-probe \
+>   --version 1.4.0 \
+>   --set provisioner.enabled=true \
+>   --set probe.tenant=<tenant-id> \
+>   --set probe.site=<site>
+> ```
+>
+> Fragua's own release migrated to canonical 1.4.0 in helm revision 10
+> on 2026-05-27. This directory is kept for historical reference only.
+> Do not install from it.
 
 Local fork of `embernet-ai/Network-Probe` chart, version-bumped from 1.2.0 → 1.2.1.
 
