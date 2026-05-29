@@ -59,9 +59,91 @@ Same creds for both edges:
 
 Also documented in `.agent/CREDENTIALS.md` in the [`Fragua-Demo`](https://github.com/fireball-industries/Fragua-Demo) repo workspace. **Gitignored — never commit, never paste in Slack, never email.** Ask me if you don't have access; I'll get you in.
 
-### 3. Network reachability
+### 3. Network access to the edge gateways
 
-Designer talks to the gateway over **TCP/8088** for the config session and **TCP/8060** for Gateway Network probing. Both ports are reachable on the edge VMs' public IPs from your workstation. No tunnel needed — the edges' web ports are open. Designer Launcher will autodiscover the gateway's hostname after you point it at the IP:port.
+Designer talks to the gateway over **TCP/8088** (config session) and **TCP/8060** (Gateway Network probing). The edge VMs sit behind Azure NSGs — assume nothing is reachable from the public internet until proven otherwise. Use the SSH tunnel path below. It's a one-line command, works regardless of NSG state, and is what I've been using all week.
+
+#### Path A — SSH tunnel (use this, works today)
+
+You need an SSH client on your workstation: OpenSSH (built in on macOS, Linux, and Windows 10+ via `C:\Windows\System32\OpenSSH\ssh.exe`) **or** PuTTY's `plink.exe` (Windows). Both are fine.
+
+**Credentials (same on both edges):**
+- User: `emberadmin`
+- Password: `GreatBallzFire01`
+- Host key fingerprints (paste into the `-hostkey` arg if your client supports TOFU bypass):
+  - `fragua-edge-01`: `SHA256:uOYI68mywjEC5Am5Gi/w1ehmHfb1u3LLAxnP4BuvQ7c`
+  - `fragua-edge-02`: `SHA256:/I/4sBCGiXvn9CbEdPR6Ar5N2/bFKjtL13B5J85aDPQ`
+
+**Open BOTH tunnels in two terminals (or two PuTTY sessions) — keep them open while Designer is connected.** Note the deliberately different local ports so you can point Designer at both edges concurrently.
+
+`fragua-edge-01` (local port `18088` → edge web UI; local `18060` → GW Network probe):
+
+```bash
+# OpenSSH (mac/linux/win)
+ssh -N -L 18088:127.0.0.1:8088 -L 18060:127.0.0.1:8060 emberadmin@20.80.241.221
+# password: GreatBallzFire01
+```
+
+```powershell
+# PuTTY plink (Windows, no prompt)
+plink -N -L 18088:127.0.0.1:8088 -L 18060:127.0.0.1:8060 `
+      -ssh emberadmin@20.80.241.221 -pw GreatBallzFire01 `
+      -hostkey "SHA256:uOYI68mywjEC5Am5Gi/w1ehmHfb1u3LLAxnP4BuvQ7c"
+```
+
+`fragua-edge-02` (local port `28088` → edge web UI; local `28060` → GW Network probe):
+
+```bash
+ssh -N -L 28088:127.0.0.1:8088 -L 28060:127.0.0.1:8060 emberadmin@52.176.39.25
+```
+
+```powershell
+plink -N -L 28088:127.0.0.1:8088 -L 28060:127.0.0.1:8060 `
+      -ssh emberadmin@52.176.39.25 -pw GreatBallzFire01 `
+      -hostkey "SHA256:/I/4sBCGiXvn9CbEdPR6Ar5N2/bFKjtL13B5J85aDPQ"
+```
+
+With both tunnels open, point Designer Launcher at:
+
+| Edge | Designer Launcher hostname | Designer Launcher port |
+|---|---|---|
+| `fragua-edge-01` | `127.0.0.1` | `18088` |
+| `fragua-edge-02` | `127.0.0.1` | `28088` |
+
+Designer's "auto-discovery" reads the gateway's advertised hostname (which will say `fragua-edge-01` etc.) — that's cosmetic, it talks to the gateway through your tunnel just fine.
+
+**Sanity check the tunnel before launching Designer:**
+
+```bash
+curl -sS http://127.0.0.1:18088/system/gwinfo
+# expect: ContextStatus=RUNNING;PlatformName=Ignition-fragua-edge-01;Version=8.3.6;...
+```
+
+If `gwinfo` returns the expected string, the tunnel is good and Designer will connect. If it hangs or 502s, the tunnel didn't establish — recheck the ssh/plink terminal for an error.
+
+#### Path B — Direct public IP
+
+If you can convince me (or whoever owns the Fragua NSGs) to open 8088/TCP from your specific source IP, you can skip the tunnel and Designer can dial the edge public IPs directly:
+
+| Edge | URL |
+|---|---|
+| `fragua-edge-01` | `http://20.80.241.221:8088` |
+| `fragua-edge-02` | `http://52.176.39.25:8088` |
+
+Default state today: **8088 is NOT open from the public internet.** Do not assume it works without checking.
+
+#### Path C — EmbernetLite Windows endpoint (coming on v0.0.23)
+
+The intended long-term path is **EmberNET Endpoint** (the Windows client at [`Embernet-ai/embernetlite-windows`](https://github.com/Embernet-ai/embernetlite-windows)). Engineer installs the MSI → enrolls → the local Flux/Ziti tunneler picks up the Fragua services and you dial them as if you were on the cluster.
+
+**Status as of 2026-05-29:** v0.0.22 ships with a service-startup nil-pointer panic that blocks install on every Windows machine — fix is in flight at [embernetlite-windows#1](https://github.com/Embernet-ai/embernetlite-windows/pull/1). Wait for **v0.0.23 signed MSI** before using this path. Until then, **use Path A (SSH tunnel)**. I'll send the v0.0.23 link in the project channel the moment it's signed and published.
+
+When v0.0.23 lands, the engineer flow is:
+
+1. Install the signed MSI (single UAC prompt).
+2. Open `http://127.0.0.1:8765/eula`, accept the EULA.
+3. Enroll: the wizard pulls a JWT from the dashboard; sign in with your Fireball AAD account.
+4. Once enrollment lands, the Designer Launcher reaches each Fragua edge at its in-mesh DNS name (no port-forwarding required).
 
 ---
 
