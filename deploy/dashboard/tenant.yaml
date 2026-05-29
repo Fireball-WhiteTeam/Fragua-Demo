@@ -1,0 +1,34 @@
+# EmberNet Industrial Dashboard tenant registration for Fragua.
+#
+# Without this CR the Fragua cluster shows up in Rancher (which only checks
+# its own management CRs) but does NOT appear in the Industrial Dashboard's
+# tenant dropdown — the dashboard discovers tenants from `tenants.embernet.ai`
+# CRs in the EmberNet cluster, NOT from the imported Rancher cluster labels.
+#
+# Apply this manifest from a shell with kubectl context to the EmberNet
+# K3s cluster (typically `embernet001` via `az vm run-command`):
+#
+#   kubectl apply -f deploy/dashboard/tenant.yaml
+#   kubectl -n fireball-system rollout restart deploy/dashboard-industrial-dashboard
+#
+# Existing tenants for reference:
+#   fireball-system/fireball         (tenantType=provider, super admin)
+#   tenant-tranetech-ut3/tranetech-ut3 (tenantType=customer)
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tenant-fragua-demo
+  labels:
+    embernet.ai/tenant: fragua-demo
+---
+apiVersion: embernet.ai/v1
+kind: Tenant
+metadata:
+  name: fragua-demo
+  namespace: tenant-fragua-demo
+spec:
+  contactEmail: patrick@fireballz.ai
+  displayName: "Fragua (Demo)"
+  isSuperAdmin: false
+  tenantType: customer

@@ -1,0 +1,107 @@
+# ──────────────────────────────────────────────────────────────────
+# EmberNET Network Probe — Helm Values
+# ──────────────────────────────────────────────────────────────────
+
+image:
+  repository: ghcr.io/embernet-ai/embernet-probe
+  tag: "1.1.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+service:
+  type: ClusterIP
+  port: 8080
+
+nodeSelector: {}
+
+tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: {}
+
+gui:
+  enabled: true
+  port: 8080
+  type: "none"
+  displayName: "EmberNET Network Probe"
+
+network:
+  hostNetwork: true
+  extraPorts: []
+
+securityContext:
+  capabilities:
+    add:
+      - NET_RAW
+      - NET_ADMIN
+
+env: []
+envFrom: []
+
+# ──────────────────────────────────────────────────────────────────
+# App-specific: Probe Configuration
+# ──────────────────────────────────────────────────────────────────
+probe:
+  deploymentMode: "deployment"   # "deployment" or "daemonset"
+  tenant: "default-tenant"
+  site: "default-site"
+  building: ""
+  dashboardURL: "http://embernet-dashboard.fireball-system.svc.cluster.local:8080"
+  scanInterval: "5m"
+  token: ""                      # Should be overridden by Dashboard/GitOps
+  zitiIdentityBase64: ""         # Base64 encoded Ziti identity JSON (only used when provisioner.enabled=false)
+
+# ──────────────────────────────────────────────────────────────────
+# Auto-enrollment via embernet-provisioner (1.2.1+)
+# When enabled, an initContainer calls POST $provisioner.url with the
+# operator-managed shared_secret, receives a Flux/Ziti enrollment JWT,
+# enrolls the identity, and writes /etc/openziti/identity.json into a
+# shared emptyDir. The main probe container reads from that emptyDir.
+# When enabled=true, .Values.probe.zitiIdentityBase64 is ignored.
+# ──────────────────────────────────────────────────────────────────
+provisioner:
+  enabled: false
+  url: "https://provisioner.embernet.ai/api/v1/provision"
+  # K8s Secret in the SAME namespace containing the shared secret.
+  # Default key:    shared_secret
+  # The operator/dashboard creates this once per cluster:
+  #   kubectl create secret generic embernet-provisioner-credentials \
+  #     -n <namespace> --from-literal=shared_secret=<EMBERNET_SHARED_SECRET>
+  sharedSecretRef:
+    name: "embernet-provisioner-credentials"
+    key:  "shared_secret"
+  # Optional: override the device_name sent to the provisioner. Default
+  # is the rendered release fullname (which is also the K8s pod prefix).
+  deviceNameOverride: ""
+  displayName: ""
+  # initContainer image: must have curl + ziti CLI. openziti/ziti-cli
+  # ships both in a single ~80 MB Alpine layer.
+  initImage:
+    repository: openziti/ziti-cli
+    tag: "1.6.6"
+    pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: "embernet-probe"
+  # imagePullSecrets to attach to the ServiceAccount so the main and
+  # init containers can pull from a private registry. Operator can
+  # leave empty if the images are public or if a global pull secret
+  # is already attached.
+  imagePullSecrets: []

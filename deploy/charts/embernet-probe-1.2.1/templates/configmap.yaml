@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "embernet-probe.fullname" . }}-config
+  labels:
+    {{- include "embernet-probe.labels" . | nindent 4 }}
+data:
+  PROBE_ID: "{{ .Release.Name }}-{{ .Values.probe.site }}"
+  PROBE_TENANT: {{ .Values.probe.tenant | quote }}
+  PROBE_SITE: {{ .Values.probe.site | quote }}
+  PROBE_BUILDING: {{ .Values.probe.building | quote }}
+  PROBE_DASHBOARD_URL: {{ .Values.probe.dashboardURL | quote }}
+  PROBE_SCAN_INTERVAL: {{ .Values.probe.scanInterval | quote }}
+  ZITI_IDENTITY_PATH: "/etc/openziti/identity.json"

@@ -1,0 +1,10 @@
+.agent/repos/
+.agent/CREDENTIALS.md
+.agent/*.jwt
+.agent/*.key
+.agent/secrets/
+
+# Per-device enrollment JWTs and identity blobs — never commit
+deploy/flux/jwts/
+*.id.b64
+

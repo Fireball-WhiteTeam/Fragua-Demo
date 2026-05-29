@@ -1,0 +1,8 @@
+# Never commit real key material from the deploy/ tree
+*.privatekey
+*.preshared
+*.psk
+*-keys.json
+*-keys.yaml
+secrets/
+deploy/flux/jwts/

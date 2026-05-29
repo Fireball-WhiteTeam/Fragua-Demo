@@ -1,0 +1,178 @@
+{{- if eq .Values.probe.deploymentMode "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "embernet-probe.fullname" . }}
+  labels:
+    {{- include "embernet-probe.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "embernet-probe.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "embernet-probe.selectorLabels" . | nindent 8 }}
+        # ═══════════════════════════════════════════════════════════
+        # THE BIG FIVE — EmberNET App Store Discovery Labels
+        # Without ALL FIVE on the pod template, the dashboard
+        # cannot discover, proxy, or manage this application.
+        # ═══════════════════════════════════════════════════════════
+        {{- include "embernet-probe.storeLabels" . | nindent 8 }}
+      annotations:
+        embernet.ai/display-name: {{ .Values.gui.displayName | default "EmberNET Network Probe" | quote }}
+    spec:
+      serviceAccountName: {{ include "embernet-probe.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.network.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- else }}
+      dnsPolicy: ClusterFirst
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.provisioner.enabled }}
+      # ════════════════════════════════════════════════════════════
+      # Auto-enrollment initContainers (1.2.1+) — two-stage
+      # 1. provisioner-fetch (curl image): POST to provisioner with the
+      #    operator-managed shared_secret. Save flux_jwt to /shared/flux.jwt.
+      #    openziti/ziti-cli doesn't ship curl or wget, hence the split.
+      # 2. ziti-enroll  (openziti/ziti-cli): consume /shared/flux.jwt,
+      #    run `ziti edge enroll`, emit /shared/identity.json. Delete
+      #    the JWT (single-use).
+      # Main container mounts /shared at /etc/openziti so the probe finds
+      # identity.json at its expected path.
+      # Either initContainer failing exits non-zero so the pod restarts
+      # on backoff rather than starting the probe with an incomplete
+      # identity (which would crashloop on JSON parse failure anyway).
+      # ════════════════════════════════════════════════════════════
+      initContainers:
+        - name: provisioner-fetch
+          image: curlimages/curl:8.10.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PROVISIONER_URL
+              value: {{ .Values.provisioner.url | quote }}
+            - name: SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provisioner.sharedSecretRef.name | quote }}
+                  key:  {{ .Values.provisioner.sharedSecretRef.key | quote }}
+            - name: DEVICE_NAME
+              value: {{ .Values.provisioner.deviceNameOverride | default (include "embernet-probe.fullname" .) | quote }}
+            - name: DISPLAY_NAME
+              value: {{ .Values.provisioner.displayName | default (include "embernet-probe.fullname" .) | quote }}
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              FULL_NAME="${DEVICE_NAME}-${NODE_NAME}"
+              echo "Provisioning Ziti identity as: ${FULL_NAME}"
+              RESP=$(curl -sS --fail-with-body -X POST \
+                -H "Content-Type: application/json" \
+                -d "{\"shared_secret\":\"${SHARED_SECRET}\",\"device_name\":\"${FULL_NAME}\",\"display_name\":\"${DISPLAY_NAME}\"}" \
+                "${PROVISIONER_URL}")
+              if [ -z "$RESP" ]; then
+                echo "ERROR: empty response from provisioner at ${PROVISIONER_URL}" >&2
+                exit 1
+              fi
+              JWT=$(echo "$RESP" | sed -n 's/.*"flux_jwt"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+              if [ -z "$JWT" ]; then
+                echo "ERROR: no flux_jwt field in provisioner response" >&2
+                echo "$RESP" | head -c 500 >&2
+                exit 1
+              fi
+              echo "Got JWT (${#JWT} chars). Writing /shared/flux.jwt for the ziti-enroll initContainer."
+              printf '%s' "$JWT" > /shared/flux.jwt
+          volumeMounts:
+            - name: ziti-identity-shared
+              mountPath: /shared
+        - name: ziti-enroll
+          image: "{{ .Values.provisioner.initImage.repository }}:{{ .Values.provisioner.initImage.tag }}"
+          imagePullPolicy: {{ .Values.provisioner.initImage.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              if [ ! -s /shared/flux.jwt ]; then
+                echo "ERROR: /shared/flux.jwt missing or empty (provisioner-fetch must run first)" >&2
+                exit 1
+              fi
+              # ziti-cli 1.6.6 sometimes retries internally and the 2nd attempt
+              # hits INVALID_ENROLLMENT_TOKEN (OTT already consumed by the 1st
+              # successful enroll). It exits non-zero even though identity.json
+              # was written. Treat presence of a non-empty identity.json with
+              # a valid JSON identity envelope as success.
+              ziti edge enroll --jwt /shared/flux.jwt --out /shared/identity.json 2>&1 || true
+              if [ ! -s /shared/identity.json ] || ! grep -q '"ztAPI"' /shared/identity.json; then
+                echo "ERROR: enrollment did not produce a usable /shared/identity.json" >&2
+                exit 1
+              fi
+              SIZE=$(wc -c < /shared/identity.json)
+              echo "Enrolled identity written to /shared/identity.json (${SIZE} bytes)"
+              rm -f /shared/flux.jwt 2>/dev/null || true
+          volumeMounts:
+            - name: ziti-identity-shared
+              mountPath: /shared
+      {{- end }}
+      containers:
+        - name: probe
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "embernet-probe.fullname" . }}-config
+            - secretRef:
+                name: {{ include "embernet-probe.fullname" . }}-secret
+          securityContext:
+            capabilities:
+              {{- toYaml .Values.securityContext.capabilities | nindent 14 }}
+          volumeMounts:
+            {{- if .Values.provisioner.enabled }}
+            # Mount the emptyDir at /etc/openziti so the probe finds
+            # identity.json where it expects it.
+            - name: ziti-identity-shared
+              mountPath: /etc/openziti
+              readOnly: true
+            {{- else }}
+            - name: ziti-identity
+              mountPath: /etc/openziti
+              readOnly: true
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- if .Values.provisioner.enabled }}
+        - name: ziti-identity-shared
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Ki
+        {{- else }}
+        - name: ziti-identity
+          secret:
+            secretName: {{ include "embernet-probe.fullname" . }}-secret
+            items:
+              - key: ziti-identity.json
+                path: identity.json
+        {{- end }}
+{{- end }}
