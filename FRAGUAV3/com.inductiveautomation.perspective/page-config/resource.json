@@ -1,0 +1,16 @@
+{
+  "scope": "G",
+  "version": 1,
+  "restricted": false,
+  "overridable": true,
+  "files": [
+    "config.json"
+  ],
+  "attributes": {
+    "lastModification": {
+      "actor": "Isaac Vilchis",
+      "timestamp": "2026-05-29T01:23:21Z"
+    },
+    "lastModificationSignature": "42e3d9ef3f2ca3ace32aebe8041e23ab75603141482e017e0360211918b2dbd0"
+  }
+}

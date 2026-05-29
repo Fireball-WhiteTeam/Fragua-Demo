@@ -1,0 +1,1687 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "height": 768,
+      "width": 1024
+    }
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "meta": {
+              "name": "Titulo"
+            },
+            "props": {
+              "style": {
+                "color": "#c8d8e8",
+                "fontSize": "14px",
+                "fontWeight": "500"
+              },
+              "text": "Control HVAC"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "LblHora"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "numberFormat({[default]PLC_PRG/Hora_H}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_M}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_S}, \"00\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#c8d8e8",
+                "fontFamily": "monospace",
+                "fontSize": 14
+              }
+            },
+            "type": "ia.display.label"
+          }
+        ],
+        "meta": {
+          "name": "TopBar"
+        },
+        "props": {
+          "alignItems": "center",
+          "justify": "space-between",
+          "style": {
+            "backgroundColor": "#162030",
+            "borderBottom": "1px solid #1e3a52",
+            "flexShrink": "0",
+            "minHeight": "48px",
+            "padding": "12px 18px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreHVAC1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": "16px",
+                        "fontWeight": "500"
+                      },
+                      "text": "HVAC Unidad 1"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoHVAC1"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC1_On},\"#00D900\",\"#3a5a74\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC1_On},\"ON\",\"OFF\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontSize": "13px",
+                        "fontWeight": "500"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderHVAC1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEnable1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#c8d8e8",
+                            "fontSize": "13px",
+                            "fontWeight": "500"
+                          },
+                          "text": "Enable/Disable"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEnable1"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleEnable1"
+                    },
+                    "props": {
+                      "color": {
+                        "disabled": {
+                          "selected": "#AC0000",
+                          "unselected": "#FFFF00"
+                        },
+                        "selected": "#FAFAFB",
+                        "unselected": "#FAFAFB"
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEnable1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between",
+                  "style": {
+                    "backgroundColor": "#1a2a3a",
+                    "borderRadius": "8px",
+                    "padding": "8px 12px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivEnableSep1"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivH1a"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblTempActual1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Temperatura Actual"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValTempActual1"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC1_Temp}, \"#0.0\") + \" °C\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": 19,
+                        "fontWeight": "500"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaTempActual1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblSP1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Setpoint"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValSP1"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC1_SP}, \"#0.0\") + \" °C\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#378ADD",
+                        "fontSize": "18px",
+                        "fontWeight": "500"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaSP1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblHist1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Histéresis"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValHist1"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC1_Hist}, \"#0.0\") + \" °C\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaHist1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblSalida1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Salida"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValSalida1"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC1_Out}, \"#0.0\") + \" %\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaSalida1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivH1b"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivH1c"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblFan1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Fan"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "DotFan1"
+                        },
+                        "props": {
+                          "style": {
+                            "fill": "#3a5a74",
+                            "height": "14px",
+                            "stroke": "#1e3a52",
+                            "width": "14px"
+                          }
+                        },
+                        "type": "ia.shapes.ellipse"
+                      },
+                      {
+                        "meta": {
+                          "name": "ValFan1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#3a5a74",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "OFF"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "TagFan1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#2a4a64",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px"
+                          },
+                          "text": "HVAC1_Fan"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "IndFan1"
+                    },
+                    "props": {
+                      "alignItems": "center",
+                      "style": {
+                        "gap": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Fan1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblComp1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Compresor"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "DotComp1"
+                        },
+                        "props": {
+                          "style": {
+                            "fill": "#3a5a74",
+                            "height": "14px",
+                            "stroke": "#1e3a52",
+                            "width": "14px"
+                          }
+                        },
+                        "type": "ia.shapes.ellipse"
+                      },
+                      {
+                        "meta": {
+                          "name": "ValComp1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#3a5a74",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "OFF"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "TagComp1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#2a4a64",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px"
+                          },
+                          "text": "HVAC1_Comp"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "IndComp1"
+                    },
+                    "props": {
+                      "alignItems": "center",
+                      "style": {
+                        "gap": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Comp1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblOcupacion1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#7a9ab8",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "Ocupación"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "LblOcupacionTag1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#2a4a64",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px"
+                          },
+                          "text": "HVAC1_Ocupacion"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColOcupacion1"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "DotOcupacion1"
+                        },
+                        "props": {
+                          "style": {
+                            "fill": "#3a5a74",
+                            "height": "14px",
+                            "stroke": "#1e3a52",
+                            "width": "14px"
+                          }
+                        },
+                        "type": "ia.shapes.ellipse"
+                      },
+                      {
+                        "meta": {
+                          "name": "ValOcupacion1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#3a5a74",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "OFF"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "IndOcupacion1"
+                    },
+                    "props": {
+                      "alignItems": "center",
+                      "style": {
+                        "gap": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaOcupacion1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblKW1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Potencia"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValKW1"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/KW_HVAC1}, \"#0.0\") + \"KW\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#f59e0b",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaKW1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivConfigSep1"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "LblConfigSP1"
+                },
+                "props": {
+                  "style": {
+                    "color": "#7a9ab8",
+                    "fontSize": "12px",
+                    "fontWeight": "500"
+                  },
+                  "text": "Ajustar Setpoint"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "InputSP1"
+                },
+                "propConfig": {
+                  "props.value": {
+                    "binding": {
+                      "config": {
+                        "bidirectional": true,
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[default]PLC_PRG/HVAC1_SP"
+                      },
+                      "type": "tag"
+                    }
+                  }
+                },
+                "props": {
+                  "format": "0.0",
+                  "maximum": 30,
+                  "minimum": 15,
+                  "style": {
+                    "width": "100%"
+                  }
+                },
+                "type": "ia.input.numeric-entry-field"
+              },
+              {
+                "meta": {
+                  "name": "LblConfigHist1"
+                },
+                "props": {
+                  "style": {
+                    "color": "#7a9ab8",
+                    "fontSize": "12px",
+                    "fontWeight": "500"
+                  },
+                  "text": "Ajustar Histéresis"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "InputHist1"
+                },
+                "propConfig": {
+                  "props.value": {
+                    "binding": {
+                      "config": {
+                        "bidirectional": true,
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[default]PLC_PRG/HVAC1_Hist"
+                      },
+                      "type": "tag"
+                    }
+                  }
+                },
+                "props": {
+                  "format": "0.0",
+                  "maximum": 5,
+                  "minimum": 0.5,
+                  "style": {
+                    "width": "100%"
+                  }
+                },
+                "type": "ia.input.numeric-entry-field"
+              }
+            ],
+            "meta": {
+              "name": "CardHVAC1"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "backgroundColor": "#162030",
+                "border": "1px solid #1e3a52",
+                "borderRadius": "12px",
+                "flexGrow": "1",
+                "gap": "12px",
+                "padding": "16px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreHVAC2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": "16px",
+                        "fontWeight": "500"
+                      },
+                      "text": "HVAC Unidad 2"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoHVAC2"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC1_On},\"#00D900\",\"#3a5a74\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC2_On},\"ON\",\"OFF\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontSize": "13px",
+                        "fontWeight": "500"
+                      },
+                      "textStyle": ""
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderHVAC2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEnable2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#c8d8e8",
+                            "fontSize": "13px",
+                            "fontWeight": "500"
+                          },
+                          "text": "Enable/Disable"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEnable2"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleEnable2"
+                    },
+                    "props": {
+                      "selected": true
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEnable2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between",
+                  "style": {
+                    "backgroundColor": "#1a2a3a",
+                    "borderRadius": "8px",
+                    "padding": "8px 12px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivEnableSep2"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivH2a"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblTempActual2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Temperatura Actual"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValTempActual2"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC2_Temp}, \"#0.0\") + \" °C\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": 19,
+                        "fontWeight": "500"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaTempActual2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblSP2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Setpoint"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValSP2"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC2_SP}, \"#0.0\") + \" °C\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#378ADD",
+                        "fontSize": "18px",
+                        "fontWeight": "500"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaSP2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblHist2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Histéresis"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValHist2"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC2_Hist}, \"#0.0\") + \" °C\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaHist2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblSalida2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Salida"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValSalida2"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/HVAC2_Out}, \"#0.0\") + \" %\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#c8d8e8",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaSalida2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivH2b"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivH2c"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblFan2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Fan"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "DotFan2"
+                        },
+                        "props": {
+                          "style": {
+                            "fill": "#3a5a74",
+                            "height": "14px",
+                            "stroke": "#1e3a52",
+                            "width": "14px"
+                          }
+                        },
+                        "type": "ia.shapes.ellipse"
+                      },
+                      {
+                        "meta": {
+                          "name": "ValFan2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#3a5a74",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "OFF"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "TagFan2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#2a4a64",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px"
+                          },
+                          "text": "HVAC2_Fan"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "IndFan2"
+                    },
+                    "props": {
+                      "alignItems": "center",
+                      "style": {
+                        "gap": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Fan2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblComp2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Compresor"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "DotComp2"
+                        },
+                        "props": {
+                          "style": {
+                            "fill": "#3a5a74",
+                            "height": "14px",
+                            "stroke": "#1e3a52",
+                            "width": "14px"
+                          }
+                        },
+                        "type": "ia.shapes.ellipse"
+                      },
+                      {
+                        "meta": {
+                          "name": "ValComp2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#3a5a74",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "OFF"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "TagComp2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#2a4a64",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px"
+                          },
+                          "text": "HVAC2_Comp"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "IndComp2"
+                    },
+                    "props": {
+                      "alignItems": "center",
+                      "style": {
+                        "gap": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Comp2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblOcupacion2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#7a9ab8",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "Ocupación"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "LblOcupacionTag2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#2a4a64",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px"
+                          },
+                          "text": "HVAC2_Ocupacion"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColOcupacion2"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "DotOcupacion2"
+                        },
+                        "props": {
+                          "style": {
+                            "fill": "#3a5a74",
+                            "height": "14px",
+                            "stroke": "#1e3a52",
+                            "width": "14px"
+                          }
+                        },
+                        "type": "ia.shapes.ellipse"
+                      },
+                      {
+                        "meta": {
+                          "name": "ValOcupacion2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#3a5a74",
+                            "fontSize": "12px",
+                            "fontWeight": "500"
+                          },
+                          "text": "OFF"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "IndOcupacion2"
+                    },
+                    "props": {
+                      "alignItems": "center",
+                      "style": {
+                        "gap": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaOcupacion2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "LblKW2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#7a9ab8",
+                        "fontSize": "12px"
+                      },
+                      "text": "Potencia"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "ValKW2"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "numberFormat({[default]PLC_PRG/KW_HVAC2}, \"#0.0\") + \"KW\""
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#f59e0b",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaKW2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivConfigSep2"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "LblConfigSP2"
+                },
+                "props": {
+                  "style": {
+                    "color": "#7a9ab8",
+                    "fontSize": "12px",
+                    "fontWeight": "500"
+                  },
+                  "text": "Ajustar Setpoint"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "InputSP2"
+                },
+                "propConfig": {
+                  "props.value": {
+                    "binding": {
+                      "config": {
+                        "bidirectional": true,
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[default]PLC_PRG/HVAC2_SP"
+                      },
+                      "type": "tag"
+                    }
+                  }
+                },
+                "props": {
+                  "format": "0.0",
+                  "maximum": 30,
+                  "minimum": 15,
+                  "style": {
+                    "width": "100%"
+                  }
+                },
+                "type": "ia.input.numeric-entry-field"
+              },
+              {
+                "meta": {
+                  "name": "LblConfigHist2"
+                },
+                "props": {
+                  "style": {
+                    "color": "#7a9ab8",
+                    "fontSize": "12px",
+                    "fontWeight": "500"
+                  },
+                  "text": "Ajustar Histéresis"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "InputHist2"
+                },
+                "propConfig": {
+                  "props.value": {
+                    "binding": {
+                      "config": {
+                        "bidirectional": true,
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[default]PLC_PRG/HVAC2_Hist"
+                      },
+                      "type": "tag"
+                    }
+                  }
+                },
+                "props": {
+                  "format": "0.0",
+                  "maximum": 5,
+                  "minimum": 0.5,
+                  "style": {
+                    "width": "100%"
+                  }
+                },
+                "type": "ia.input.numeric-entry-field"
+              }
+            ],
+            "meta": {
+              "name": "CardHVAC2"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "backgroundColor": "#162030",
+                "border": "1px solid #1e3a52",
+                "borderRadius": "12px",
+                "flexGrow": "1",
+                "gap": "12px",
+                "padding": "16px"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "FilaHVAC"
+        },
+        "props": {
+          "style": {
+            "flexGrow": "1",
+            "gap": "16px",
+            "paddingLeft": "16px",
+            "paddingRight": "16px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "meta": {
+          "name": "PaddingBottom"
+        },
+        "props": {
+          "style": {
+            "flexShrink": "0",
+            "minHeight": "16px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "meta": {
+              "name": "Titulo"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "numberFormat({[default]PLC_PRG/Hora_H}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_M}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_S}, \"00\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#c8d8e8",
+                "fontSize": "14px",
+                "fontWeight": "500"
+              }
+            },
+            "type": "ia.display.label"
+          }
+        ],
+        "meta": {
+          "name": "TopBar_0"
+        },
+        "position": {
+          "align": "stretch"
+        },
+        "props": {
+          "alignItems": "baseline",
+          "justify": "flex-end",
+          "style": {
+            "backgroundColor": "#162030",
+            "borderBottom": "1px solid #1e3a52",
+            "flexShrink": "0",
+            "minHeight": "48px",
+            "padding": "12px 18px"
+          }
+        },
+        "type": "ia.container.flex"
+      }
+    ],
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "justify": "space-around",
+      "style": {
+        "backgroundColor": "#0f1923",
+        "gap": "10px",
+        "height": "100%",
+        "padding": "0px"
+      }
+    },
+    "type": "ia.container.flex"
+  }
+}

@@ -1,0 +1,3344 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "height": 712,
+      "width": 1400
+    }
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "meta": {
+              "name": "Titulo"
+            },
+            "props": {
+              "style": {
+                "color": "#00d4ff",
+                "fontFamily": "monospace",
+                "fontSize": "16px",
+                "fontWeight": "600",
+                "letterSpacing": "3px"
+              },
+              "text": "Customer  V2 — SISTEMA DE CONTROL"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "Reloj"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "numberFormat({[default]PLC_PRG/Hora_H}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_M}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_S}, \"00\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#4ade80",
+                "fontFamily": "monospace",
+                "fontSize": "12px",
+                "letterSpacing": "2px"
+              }
+            },
+            "type": "ia.display.label"
+          }
+        ],
+        "meta": {
+          "name": "Header"
+        },
+        "props": {
+          "justify": "space-between",
+          "style": {
+            "alignItems": "center",
+            "backgroundColor": "#1a1a2e",
+            "borderBottom": "1px solid #0f3460",
+            "height": "56px",
+            "justifyContent": "space-between",
+            "padding": "0 24px",
+            "shrink": "0"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#00d4ff",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "10px"
+                      },
+                      "text": "HVAC UNIDAD 1"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Temp"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/HVAC1_Temp"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#ffffff",
+                            "fontFamily": "monospace",
+                            "fontSize": "34px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "16px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaTemp"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "SpLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "SP:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "SP"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "22.00"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "SalLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px",
+                            "marginLeft": "8px"
+                          },
+                          "text": "Sal:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Out"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/HVAC1_Out"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "percent",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit3"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "%"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaSP"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "Estado"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC1_On},\"ENCENDIDO\",\"APAGADO\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.textStyle.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC1_On},\"#4ade80\",\"#64748b\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#64748b",
+                        "fontSize": "11px",
+                        "fontWeight": "600",
+                        "letterSpacing": "1px",
+                        "marginTop": "8px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "events": {
+                  "dom": {
+                    "onClick": {
+                      "config": {
+                        "script": "    system.perspective.navigate(self, page\u003d\"/HVAC\")"
+                      },
+                      "scope": "G",
+                      "type": "script"
+                    }
+                  }
+                },
+                "meta": {
+                  "name": "HVAC1"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#00d4ff",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "10px"
+                      },
+                      "text": "HVAC UNIDAD 2"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Temp"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/HVAC2_Temp"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#ffffff",
+                            "fontFamily": "monospace",
+                            "fontSize": "34px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "16px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaTemp"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "SpLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "SP:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "SP"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/HVAC2_SP"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "SalLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px",
+                            "marginLeft": "8px"
+                          },
+                          "text": "Sal:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Out"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/HVAC2_Out"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "percent",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit3"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "%"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaSP"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "Estado"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC1_On},\"#4ade80\",\"#64748b\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/HVAC1_On},\"ENCENDIDO\",\"APAGADO\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontSize": "11px",
+                        "fontWeight": "600",
+                        "letterSpacing": "1px",
+                        "marginTop": "8px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "events": {
+                  "dom": {
+                    "onClick": {
+                      "config": {
+                        "script": "\tsystem.perspective.navigate(self, page\u003d\"/HVAC\")"
+                      },
+                      "scope": "G",
+                      "type": "script"
+                    }
+                  }
+                },
+                "meta": {
+                  "name": "HVAC2"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#f59e0b",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "10px"
+                      },
+                      "text": "REFRI — MEDIA TEMP"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Temp"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "numberFormat({[default]PLC_PRG/Alta_Temp}, \"#0.00\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#ffffff",
+                            "fontFamily": "monospace",
+                            "fontSize": "34px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "16px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaTemp"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "SpLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "SP:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "SP"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/Alta_SP"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "AlLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px",
+                            "marginLeft": "8px"
+                          },
+                          "text": "Alarm:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "AlarmSP"
+                        },
+                        "position": {
+                          "basis": "-9px"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/Alta_AlarmSP"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "number",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit3"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaSP"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Alarm"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#4ade80",
+                            "fontSize": "11px",
+                            "fontWeight": "600"
+                          },
+                          "text": "○ NORMAL"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaEstado"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "8px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "events": {
+                  "dom": {
+                    "onClick": {
+                      "config": {
+                        "script": "\tsystem.perspective.navigate(self, page\u003d\"/med\")"
+                      },
+                      "scope": "G",
+                      "type": "script"
+                    }
+                  }
+                },
+                "meta": {
+                  "name": "RefriAlta"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#818cf8",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "10px"
+                      },
+                      "text": "REFRI — BAJA TEMP"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Temp"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/Baja_Temp"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#ffffff",
+                            "fontFamily": "monospace",
+                            "fontSize": "34px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "16px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaTemp"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "SpLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "SP:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "SP"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/Baja_SP"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "AlLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px",
+                            "marginLeft": "8px"
+                          },
+                          "text": "Alarm:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "AlarmSP"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/Baja_AlarmSP"
+                              },
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit3"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "°C"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaSP"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Alarm"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Baja_Alarm},\"ALARMA\",\"NORMAL\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#4ade80",
+                            "fontSize": "11px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaEstado"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "8px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "events": {
+                  "dom": {
+                    "onClick": {
+                      "config": {
+                        "script": "\tsystem.perspective.navigate(self, page\u003d\"/low\")"
+                      },
+                      "scope": "G",
+                      "type": "script"
+                    }
+                  }
+                },
+                "meta": {
+                  "name": "RefriBaja"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#a78bfa",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "10px"
+                      },
+                      "text": "VFD — VARIADOR"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Hz"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/VFD_Hz"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#ffffff",
+                            "fontFamily": "monospace",
+                            "fontSize": "34px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "16px"
+                          },
+                          "text": "Hz"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaHz"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "PotLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "Potencia:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "KW_VFD"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KW_VFD"
+                              },
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaKW"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "Estado"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/VFD_On},\"CORRIENDO\",\"DETENIDO\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.textStyle.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/VFD_On},\"#4ade80\",\"#64748b\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#64748b",
+                        "fontSize": "11px",
+                        "fontWeight": "600",
+                        "letterSpacing": "1px",
+                        "marginTop": "8px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "VFD"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "meta": {
+              "name": "FilaHVAC"
+            },
+            "props": {
+              "style": {
+                "gap": "10px",
+                "shrink": "0"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#f59e0b",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "8px"
+                      },
+                      "text": "POTENCIA INSTANTÁNEA"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "KW"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KW"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#f59e0b",
+                            "fontFamily": "monospace",
+                            "fontSize": "30px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#f59e0b",
+                            "fontSize": "16px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaKW"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "KVAR"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KVAR"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "13px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "U1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "kVAR"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaKVAR"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "KVA"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KVA"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "13px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "U2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "kVA"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaKVA"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "FPLbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#4ade80",
+                            "fontSize": "13px",
+                            "fontWeight": "600"
+                          },
+                          "text": "FP:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "FP"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/FP"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#4ade80",
+                            "fontFamily": "monospace",
+                            "fontSize": "13px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaFP"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Potencia"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#4ade80",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "8px"
+                      },
+                      "text": "ENERGÍA ACUMULADA"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "KWH"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KWH"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#4ade80",
+                            "fontFamily": "monospace",
+                            "fontSize": "30px",
+                            "fontWeight": "600"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#4ade80",
+                            "fontSize": "16px"
+                          },
+                          "text": "kWh"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaKWH"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "KVARH"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KVARH"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "13px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "U1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "kVARh"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaKVARH"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "4px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Energia"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#a78bfa",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "8px"
+                      },
+                      "text": "DESGLOSE DE POTENCIA"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#00d4ff",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "HVAC 1  :"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KW_HVAC1"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#00d4ff",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#00d4ff",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "R1"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#00d4ff",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "HVAC 2  :"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KW_HVAC2"
+                              },
+                              "transforms": [
+                                {
+                                  "formatType": "numeric",
+                                  "formatValue": "#0.00",
+                                  "type": "format"
+                                }
+                              ],
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#00d4ff",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#00d4ff",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "R2"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#f59e0b",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "R. Media:"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "fallbackDelay": 2.5,
+                                "mode": "direct",
+                                "tagPath": "[default]PLC_PRG/KW_Luces"
+                              },
+                              "type": "tag"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#f59e0b",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#f59e0b",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "R3"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#818cf8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "R. Baja :"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#818cf8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "5.50"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#818cf8",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "R4"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#a78bfa",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "VFD     :"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#a78bfa",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": 0
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#a78bfa",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "R5"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#fbbf24",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "Luces   :"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#fbbf24",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "3.20"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#fbbf24",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "R6"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "Base    :"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontFamily": "monospace",
+                            "fontSize": "11px"
+                          },
+                          "text": "2.50"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Unit"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#94a3b8",
+                            "fontSize": "11px"
+                          },
+                          "text": "kW"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "R7"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "4px",
+                        "marginTop": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Desglose"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "1",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "Tit"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#00d4ff",
+                        "fontSize": "10px",
+                        "letterSpacing": "2px",
+                        "marginBottom": "10px"
+                      },
+                      "text": "VOLTAJES — SISTEMA 220 / 127 V TRIFÁSICO"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "meta": {
+                              "name": "Lbl"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              },
+                              "text": "L1-N:"
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Val"
+                            },
+                            "propConfig": {
+                              "props.text": {
+                                "binding": {
+                                  "config": {
+                                    "fallbackDelay": 2.5,
+                                    "mode": "direct",
+                                    "tagPath": "[default]PLC_PRG/VL1N"
+                                  },
+                                  "type": "tag"
+                                }
+                              }
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              }
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Unit"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontSize": "11px"
+                              },
+                              "text": "V"
+                            },
+                            "type": "ia.display.label"
+                          }
+                        ],
+                        "meta": {
+                          "name": "VL1N"
+                        },
+                        "props": {
+                          "style": {
+                            "alignItems": "baseline",
+                            "gap": "4px"
+                          }
+                        },
+                        "type": "ia.container.flex"
+                      },
+                      {
+                        "children": [
+                          {
+                            "meta": {
+                              "name": "Lbl"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              },
+                              "text": "L2-N:"
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Val"
+                            },
+                            "propConfig": {
+                              "props.text": {
+                                "binding": {
+                                  "config": {
+                                    "fallbackDelay": 2.5,
+                                    "mode": "direct",
+                                    "tagPath": "[default]PLC_PRG/VL2N"
+                                  },
+                                  "type": "tag"
+                                }
+                              }
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              }
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Unit"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontSize": "11px"
+                              },
+                              "text": "V"
+                            },
+                            "type": "ia.display.label"
+                          }
+                        ],
+                        "meta": {
+                          "name": "VL2N"
+                        },
+                        "props": {
+                          "style": {
+                            "alignItems": "baseline",
+                            "gap": "4px"
+                          }
+                        },
+                        "type": "ia.container.flex"
+                      },
+                      {
+                        "children": [
+                          {
+                            "meta": {
+                              "name": "Lbl"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              },
+                              "text": "L3-N:"
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Val"
+                            },
+                            "propConfig": {
+                              "props.text": {
+                                "binding": {
+                                  "config": {
+                                    "fallbackDelay": 2.5,
+                                    "mode": "direct",
+                                    "tagPath": "[default]PLC_PRG/VL3N"
+                                  },
+                                  "type": "tag"
+                                }
+                              }
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              }
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Unit"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#ffffff",
+                                "fontSize": "11px"
+                              },
+                              "text": "V"
+                            },
+                            "type": "ia.display.label"
+                          }
+                        ],
+                        "meta": {
+                          "name": "VL3N"
+                        },
+                        "props": {
+                          "style": {
+                            "alignItems": "baseline",
+                            "gap": "4px"
+                          }
+                        },
+                        "type": "ia.container.flex"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaVLN"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "16px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "meta": {
+                              "name": "Lbl"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              },
+                              "text": "L1-L2:"
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Val"
+                            },
+                            "propConfig": {
+                              "props.text": {
+                                "binding": {
+                                  "config": {
+                                    "fallbackDelay": 2.5,
+                                    "mode": "direct",
+                                    "tagPath": "[default]PLC_PRG/VL1L2"
+                                  },
+                                  "transforms": [
+                                    {
+                                      "formatType": "numeric",
+                                      "formatValue": "#00.00",
+                                      "type": "format"
+                                    }
+                                  ],
+                                  "type": "tag"
+                                }
+                              }
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              }
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Unit"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontSize": "11px"
+                              },
+                              "text": "V"
+                            },
+                            "type": "ia.display.label"
+                          }
+                        ],
+                        "meta": {
+                          "name": "VL1L2"
+                        },
+                        "props": {
+                          "style": {
+                            "alignItems": "baseline",
+                            "gap": "4px"
+                          }
+                        },
+                        "type": "ia.container.flex"
+                      },
+                      {
+                        "children": [
+                          {
+                            "meta": {
+                              "name": "Lbl"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              },
+                              "text": "L2-L3:"
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Val"
+                            },
+                            "propConfig": {
+                              "props.text": {
+                                "binding": {
+                                  "config": {
+                                    "fallbackDelay": 2.5,
+                                    "mode": "direct",
+                                    "tagPath": "[default]PLC_PRG/VL2L3"
+                                  },
+                                  "type": "tag"
+                                }
+                              }
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              }
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Unit"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontSize": "11px"
+                              },
+                              "text": "V"
+                            },
+                            "type": "ia.display.label"
+                          }
+                        ],
+                        "meta": {
+                          "name": "VL2L3"
+                        },
+                        "props": {
+                          "style": {
+                            "alignItems": "baseline",
+                            "gap": "4px"
+                          }
+                        },
+                        "type": "ia.container.flex"
+                      },
+                      {
+                        "children": [
+                          {
+                            "meta": {
+                              "name": "Lbl"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              },
+                              "text": "L3-L1:"
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Val"
+                            },
+                            "propConfig": {
+                              "props.text": {
+                                "binding": {
+                                  "config": {
+                                    "fallbackDelay": 2.5,
+                                    "mode": "direct",
+                                    "tagPath": "[default]PLC_PRG/VL3L1"
+                                  },
+                                  "type": "tag"
+                                }
+                              }
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontFamily": "monospace",
+                                "fontSize": "13px"
+                              }
+                            },
+                            "type": "ia.display.label"
+                          },
+                          {
+                            "meta": {
+                              "name": "Unit"
+                            },
+                            "props": {
+                              "style": {
+                                "color": "#94a3b8",
+                                "fontSize": "11px"
+                              },
+                              "text": "V"
+                            },
+                            "type": "ia.display.label"
+                          }
+                        ],
+                        "meta": {
+                          "name": "VL3L1"
+                        },
+                        "props": {
+                          "style": {
+                            "alignItems": "baseline",
+                            "gap": "4px"
+                          }
+                        },
+                        "type": "ia.container.flex"
+                      }
+                    ],
+                    "meta": {
+                      "name": "FilaVLL"
+                    },
+                    "props": {
+                      "style": {
+                        "alignItems": "baseline",
+                        "gap": "16px",
+                        "marginTop": "6px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "Voltajes"
+                },
+                "props": {
+                  "direction": "column",
+                  "style": {
+                    "backgroundColor": "#16213e",
+                    "border": "1px solid #0f3460",
+                    "borderRadius": "8px",
+                    "flex": "2",
+                    "padding": "14px"
+                  }
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "meta": {
+              "name": "FilaEnergia"
+            },
+            "props": {
+              "style": {
+                "gap": "10px",
+                "shrink": "0"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "events": {
+                  "dom": {
+                    "onClick": {
+                      "config": {
+                        "script": "\tsystem.perspective.navigate(page\u003d\"/Luces\")"
+                      },
+                      "scope": "G",
+                      "type": "script"
+                    }
+                  }
+                },
+                "meta": {
+                  "name": "Tit"
+                },
+                "props": {
+                  "style": {
+                    "color": "#f59e0b",
+                    "fontSize": "10px",
+                    "letterSpacing": "2px",
+                    "marginBottom": "10px"
+                  },
+                  "text": "8 LÍNEAS DE ILUMINACIÓN — HORARIO NOCTURNO 19:00 A 07:00 HRS"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 1"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz1},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L1"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz1},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 2"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz2},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L2"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz2},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 3"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz3},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L3"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz3},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 4"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz4},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L4"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz4},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 5"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz5},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L5"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz5},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 6"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz6},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L6"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz6},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 7"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz7},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L7"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz7},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "Lbl"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "fontWeight": "600",
+                            "textAlign": "center"
+                          },
+                          "text": "LUZ 8"
+                        },
+                        "type": "ia.display.label"
+                      },
+                      {
+                        "meta": {
+                          "name": "Val"
+                        },
+                        "propConfig": {
+                          "props.text": {
+                            "binding": {
+                              "config": {
+                                "expression": "IF({[default]PLC_PRG/Luz8},\"ON\",\"OFF\")"
+                              },
+                              "type": "expr"
+                            }
+                          }
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#475569",
+                            "fontFamily": "monospace",
+                            "fontSize": "10px",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                          }
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "L8"
+                    },
+                    "propConfig": {
+                      "props.style.backgroundColor": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz8},\"#00FF00\",\"#16213e\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "border": "1px solid #0f3460",
+                        "borderRadius": "8px",
+                        "flex": "1",
+                        "padding": "14px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaBotones"
+                },
+                "props": {
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\tsystem.perspective.navigate(page\u003d\"/Luces\")"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "FilaLuces"
+            },
+            "props": {
+              "alignItems": "flex-start",
+              "direction": "column",
+              "style": {
+                "backgroundColor": "#16213e",
+                "border": "1px solid #0f3460",
+                "borderRadius": "8px",
+                "padding": "14px",
+                "shrink": "0"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "Contenido"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "10px",
+            "grow": "1",
+            "padding": "12px"
+          }
+        },
+        "type": "ia.container.flex"
+      }
+    ],
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "backgroundColor": "#0f0f1a",
+        "height": "100%",
+        "padding": "0"
+      }
+    },
+    "type": "ia.container.flex"
+  }
+}

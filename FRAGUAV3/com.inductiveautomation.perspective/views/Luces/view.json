@@ -1,0 +1,2123 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "height": 808,
+      "width": 556
+    }
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "meta": {
+              "name": "Titulo"
+            },
+            "props": {
+              "style": {
+                "color": "#c8d8e8",
+                "fontSize": "14px",
+                "fontWeight": "500"
+              },
+              "text": "Control de Iluminación"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "Label"
+            },
+            "position": {
+              "basis": "169px"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "\"Horario Nocturno: \" + if({[default]PLC_PRG/Noche}, \"ON\", \"OFF\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "whiteSpace": "nowrap"
+              },
+              "textStyle": {
+                "color": "#FAFAFB"
+              }
+            },
+            "type": "ia.display.label"
+          }
+        ],
+        "meta": {
+          "name": "TopBar"
+        },
+        "props": {
+          "alignItems": "center",
+          "justify": "space-between",
+          "style": {
+            "backgroundColor": "#162030",
+            "borderBottom": "1px solid #1e3a52",
+            "flexShrink": "0",
+            "minHeight": "48px",
+            "padding": "12px 18px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "meta": {
+              "name": "LblModoActivo"
+            },
+            "props": {
+              "style": {
+                "color": "#7a9ab8",
+                "fontSize": "12px"
+              },
+              "text": "Modo activo:"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "LblNocheValor"
+            },
+            "props": {
+              "style": {
+                "color": "#a8c4e0",
+                "fontSize": "12px",
+                "fontWeight": "500"
+              },
+              "text": "Noche (19:00 – 07:00)"
+            },
+            "type": "ia.display.label"
+          }
+        ],
+        "meta": {
+          "name": "BannerNoche"
+        },
+        "props": {
+          "alignItems": "center",
+          "style": {
+            "backgroundColor": "#1a2a3a",
+            "border": "1px solid #1e3a52",
+            "borderRadius": "8px",
+            "flexShrink": "0",
+            "gap": "8px",
+            "marginLeft": "16px",
+            "marginRight": "16px",
+            "minHeight": "36px",
+            "padding": "8px 14px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "meta": {
+                  "name": "NumEncendidas"
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "config": {
+                        "expression": "(if({[default]PLC_PRG/Luz1}, 1, 0) +\r\nif({[default]PLC_PRG/Luz2}, 1, 0) +\r\nif({[default]PLC_PRG/Luz3}, 1, 0) +\r\nif({[default]PLC_PRG/Luz4}, 1, 0) +\r\nif({[default]PLC_PRG/Luz5}, 1, 0) +\r\nif({[default]PLC_PRG/Luz6}, 1, 0) +\r\nif({[default]PLC_PRG/Luz7}, 1, 0) +\r\nif({[default]PLC_PRG/Luz8}, 1, 0))"
+                      },
+                      "type": "expr"
+                    }
+                  }
+                },
+                "props": {
+                  "style": {
+                    "color": "#4ade80",
+                    "fontSize": "22px",
+                    "fontWeight": "500"
+                  }
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "LblEncendidas"
+                },
+                "props": {
+                  "style": {
+                    "color": "#4a6a84",
+                    "fontSize": "11px"
+                  },
+                  "text": "Encendidas"
+                },
+                "type": "ia.display.label"
+              }
+            ],
+            "meta": {
+              "name": "CardEncendidas"
+            },
+            "props": {
+              "alignItems": "center",
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#162030",
+                "borderRadius": "8px",
+                "flexGrow": "1",
+                "padding": "10px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "meta": {
+                  "name": "NumApagadas"
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "config": {
+                        "expression": "8 - (if({[default]PLC_PRG/Luz1}, 1, 0) +\r\nif({[default]PLC_PRG/Luz2}, 1, 0) +\r\nif({[default]PLC_PRG/Luz3}, 1, 0) +\r\nif({[default]PLC_PRG/Luz4}, 1, 0) +\r\nif({[default]PLC_PRG/Luz5}, 1, 0) +\r\nif({[default]PLC_PRG/Luz6}, 1, 0) +\r\nif({[default]PLC_PRG/Luz7}, 1, 0) +\r\nif({[default]PLC_PRG/Luz8}, 1, 0))"
+                      },
+                      "type": "expr"
+                    }
+                  }
+                },
+                "props": {
+                  "style": {
+                    "color": "#5a7a96",
+                    "fontSize": "22px",
+                    "fontWeight": "500"
+                  }
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "LblApagadas"
+                },
+                "props": {
+                  "style": {
+                    "color": "#4a6a84",
+                    "fontSize": "11px"
+                  },
+                  "text": "Apagadas"
+                },
+                "type": "ia.display.label"
+              }
+            ],
+            "meta": {
+              "name": "CardApagadas"
+            },
+            "props": {
+              "alignItems": "center",
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#162030",
+                "borderRadius": "8px",
+                "flexGrow": "1",
+                "padding": "10px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "meta": {
+                  "name": "NumHabilitadas"
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "config": {
+                        "expression": "(if({[default]PLC_PRG/Override_luz_1}, 1, 0) +\r\nif({[default]PLC_PRG/Override_luz_2}, 1, 0) +\r\nif({[default]PLC_PRG/Override_luz_3}, 1, 0) +\r\nif({[default]PLC_PRG/Override_luz_4}, 1, 0) +\r\nif({[default]PLC_PRG/Override_luz_5}, 1, 0) +\r\nif({[default]PLC_PRG/Override_luz_6}, 1, 0) +\r\nif({[default]PLC_PRG/Override_luz_7}, 1, 0) +\r\nif({[default]PLC_PRG/Override_luz_8}, 1, 0))"
+                      },
+                      "type": "expr"
+                    }
+                  }
+                },
+                "props": {
+                  "style": {
+                    "color": "#378ADD",
+                    "fontSize": "22px",
+                    "fontWeight": "500"
+                  }
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "LblHabilitadas"
+                },
+                "props": {
+                  "style": {
+                    "color": "#4a6a84",
+                    "fontSize": "11px"
+                  },
+                  "text": "Forzadas"
+                },
+                "type": "ia.display.label"
+              }
+            ],
+            "meta": {
+              "name": "CardHabilitadas"
+            },
+            "props": {
+              "alignItems": "center",
+              "direction": "column",
+              "justify": "center",
+              "style": {
+                "backgroundColor": "#162030",
+                "borderRadius": "8px",
+                "flexGrow": "1",
+                "padding": "10px"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "FilaResumen"
+        },
+        "props": {
+          "style": {
+            "flexShrink": "0",
+            "gap": "10px",
+            "minHeight": "70px",
+            "paddingLeft": "16px",
+            "paddingRight": "16px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz1"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 1"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz1"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_1}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_1}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz1"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz1"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz1"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz1},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz1"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn1"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FFFFFF",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn1"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz1"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_1"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle1"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "    val \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz1_En\"])[0].value\n    system.tag.writeBlocking([\"[default]PLC_PRG/Luz1_En\"], [not val])\n"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz1"
+            },
+            "position": {
+              "basis": "165px"
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz1}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz2"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 2"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz2"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_2}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_2}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz2"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz2"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz2"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz2},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz2"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn2"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FFFFFF",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn2"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz2"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_2"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle2"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\tval \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz2_En\"])[0].value\n\tsystem.tag.writeBlocking([\"[default]PLC_PRG/Luz2_En\"], [not val])"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz2"
+            },
+            "position": {
+              "basis": 165
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz2}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "FilaLuces12"
+        },
+        "props": {
+          "style": {
+            "flexShrink": "0",
+            "gap": "10px",
+            "minHeight": "130px",
+            "paddingLeft": "16px",
+            "paddingRight": "16px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz3"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 3"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz3"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_3}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_3}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz3"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz3"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz3"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz3},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado3"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz3"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn3"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FFFFFF",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn3"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz3"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_3"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle3"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\tval \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz3_En\"])[0].value\n\tsystem.tag.writeBlocking([\"[default]PLC_PRG/Luz3_En\"], [not val])"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz3"
+            },
+            "position": {
+              "basis": 165
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz3}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz4"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 4"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz4"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_4}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_4}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz4"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz4"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz4"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz4},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado4"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz4"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn4"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FFFFFF",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn4"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz4"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_4"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle4"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\tval \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz4_En\"])[0].value\n\tsystem.tag.writeBlocking([\"[default]PLC_PRG/Luz4_En\"], [not val])"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz4"
+            },
+            "position": {
+              "basis": 165
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz4}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "FilaLuces34"
+        },
+        "props": {
+          "style": {
+            "flexShrink": "0",
+            "gap": "10px",
+            "minHeight": "130px",
+            "paddingLeft": "16px",
+            "paddingRight": "16px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz5"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 5"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz5"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_5}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_5}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz5"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz5"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz5"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz5},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado5"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz5"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn5"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FAFAFB",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn5"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz5"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_5"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle5"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\tval \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz5_En\"])[0].value\n\tsystem.tag.writeBlocking([\"[default]PLC_PRG/Luz5_En\"], [not val])"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz5"
+            },
+            "position": {
+              "basis": 165
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz5}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz6"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 6"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz6"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_6}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_6}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz6"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz6"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz6"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz6},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado6"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz6"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn6"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FAFAFB",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn6"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz6"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_6"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle6"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\tval \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz6_En\"])[0].value\n\tsystem.tag.writeBlocking([\"[default]PLC_PRG/Luz6_En\"], [not val])"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz6"
+            },
+            "position": {
+              "basis": 165
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz6}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "FilaLuces56"
+        },
+        "props": {
+          "style": {
+            "flexShrink": "0",
+            "gap": "10px",
+            "minHeight": "130px",
+            "paddingLeft": "16px",
+            "paddingRight": "16px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz7"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 7"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz7"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_7}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_7}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz7"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz7"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz7"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz7},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado7"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz7"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn7"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FAFAFB",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn7"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz7"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_7"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle7"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\t\tval \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz7_En\"])[0].value\n\t\tsystem.tag.writeBlocking([\"[default]PLC_PRG/Luz7_En\"], [not val])"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz7"
+            },
+            "position": {
+              "basis": 165
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz7}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "NombreLuz8"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "14px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Luz 8"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "TagLuz8"
+                    },
+                    "propConfig": {
+                      "props.style.color": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_8}, \"#EEEF44\", \"#FAFAFB\")"
+                          },
+                          "type": "expr"
+                        }
+                      },
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "if({[default]PLC_PRG/Override_luz_8}, \"OVERRIDDEN\", \"NORMAL\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "fontFamily": "monospace",
+                        "fontSize": "11px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "HeaderLuz8"
+                },
+                "props": {
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "IndicadorLuz8"
+                    },
+                    "props": {
+                      "style": {
+                        "fill": "#3a5a74",
+                        "height": "20px",
+                        "stroke": "#1e3a52",
+                        "width": "20px"
+                      }
+                    },
+                    "type": "ia.shapes.ellipse"
+                  },
+                  {
+                    "meta": {
+                      "name": "EstadoLuz8"
+                    },
+                    "propConfig": {
+                      "props.text": {
+                        "binding": {
+                          "config": {
+                            "expression": "IF({[default]PLC_PRG/Luz8},\"Encendida\",\"Apagada\")"
+                          },
+                          "type": "expr"
+                        }
+                      }
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#FFFFFF",
+                        "fontSize": "13px"
+                      }
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaEstado8"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "gap": "8px"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "meta": {
+                  "name": "DivLuz8"
+                },
+                "props": {
+                  "style": {
+                    "borderTop": "1px solid #1e3a52"
+                  }
+                },
+                "type": "ia.container.flex"
+              },
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "meta": {
+                          "name": "LblEn8"
+                        },
+                        "props": {
+                          "style": {
+                            "color": "#FAFAFB",
+                            "fontSize": "11px"
+                          },
+                          "text": "Override"
+                        },
+                        "type": "ia.display.label"
+                      }
+                    ],
+                    "meta": {
+                      "name": "ColEn8"
+                    },
+                    "props": {
+                      "direction": "column",
+                      "style": {
+                        "gap": "2px"
+                      }
+                    },
+                    "type": "ia.container.flex"
+                  },
+                  {
+                    "meta": {
+                      "name": "ToggleLuz8"
+                    },
+                    "propConfig": {
+                      "props.selected": {
+                        "binding": {
+                          "config": {
+                            "bidirectional": true,
+                            "fallbackDelay": 2.5,
+                            "mode": "direct",
+                            "tagPath": "[default]PLC_PRG/Override_luz_8"
+                          },
+                          "type": "tag"
+                        }
+                      }
+                    },
+                    "type": "ia.input.toggle-switch"
+                  }
+                ],
+                "meta": {
+                  "name": "FilaToggle8"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "justify": "space-between"
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "events": {
+              "dom": {
+                "onClick": {
+                  "config": {
+                    "script": "\tval \u003d system.tag.readBlocking([\"[default]PLC_PRG/Luz8_En\"])[0].value\n\tsystem.tag.writeBlocking([\"[default]PLC_PRG/Luz8_En\"], [not val])"
+                  },
+                  "scope": "G",
+                  "type": "script"
+                }
+              }
+            },
+            "meta": {
+              "name": "CardLuz8"
+            },
+            "position": {
+              "basis": 165
+            },
+            "propConfig": {
+              "props.style.backgroundColor": {
+                "binding": {
+                  "config": {
+                    "expression": "if({[default]PLC_PRG/Luz8}, \"#00AC00\", \"#162030\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "border": "1px solid #1e3a52",
+                "borderRadius": "10px",
+                "cursor": "pointer",
+                "flexGrow": "1",
+                "gap": "8px",
+                "padding": "12px 14px"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "FilaLuces78"
+        },
+        "props": {
+          "style": {
+            "flexShrink": "0",
+            "gap": "10px",
+            "minHeight": "130px",
+            "paddingBottom": "16px",
+            "paddingLeft": "16px",
+            "paddingRight": "16px"
+          }
+        },
+        "type": "ia.container.flex"
+      }
+    ],
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "backgroundColor": "#0f1923",
+        "gap": "10px",
+        "height": "100%",
+        "padding": "0px"
+      }
+    },
+    "type": "ia.container.flex"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "scope": "G",
+  "version": 1,
+  "restricted": false,
+  "overridable": true,
+  "files": [
+    "view.json",
+    "thumbnail.png"
+  ],
+  "attributes": {
+    "lastModification": {
+      "actor": "Isaac Vilchis",
+      "timestamp": "2026-05-29T01:56:16Z"
+    },
+    "lastModificationSignature": "a06fca699f17f3849f1ae16ab74843a1cca266a66693cb83fc74a07089e53fa3"
+  }
+}

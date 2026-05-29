@@ -1,0 +1,451 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "height": 700,
+      "width": 400
+    }
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "meta": {
+                  "name": "Titulo"
+                },
+                "props": {
+                  "style": {
+                    "color": "#e0f0ff",
+                    "fontSize": "16px",
+                    "fontWeight": "500"
+                  },
+                  "text": "Camara Baja Temp"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "children": [
+                  {
+                    "meta": {
+                      "name": "dot"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#66bb6a",
+                        "fontSize": "10px"
+                      },
+                      "text": "●"
+                    },
+                    "type": "ia.display.label"
+                  },
+                  {
+                    "meta": {
+                      "name": "lbl"
+                    },
+                    "props": {
+                      "style": {
+                        "color": "#66bb6a",
+                        "fontSize": "11px",
+                        "fontWeight": "500"
+                      },
+                      "text": "Modbus Online"
+                    },
+                    "type": "ia.display.label"
+                  }
+                ],
+                "meta": {
+                  "name": "modbus_badge"
+                },
+                "props": {
+                  "alignItems": "center",
+                  "style": {
+                    "backgroundColor": "#0a2a1a",
+                    "border": "1px solid #1a6a3a",
+                    "borderRadius": "12px",
+                    "gap": "6px",
+                    "padding": "2px 10px"
+                  }
+                },
+                "type": "ia.container.flex"
+              }
+            ],
+            "meta": {
+              "name": "left"
+            },
+            "props": {
+              "alignItems": "center",
+              "style": {
+                "gap": "12px"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "meta": {
+              "name": "LblHora"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "numberFormat({[default]PLC_PRG/Hora_H}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_M}, \"00\") + \":\" + numberFormat({[default]PLC_PRG/Hora_S}, \"00\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#e0f0ff",
+                "fontSize": "13px",
+                "fontWeight": "500"
+              }
+            },
+            "type": "ia.display.label"
+          }
+        ],
+        "meta": {
+          "name": "TopBar"
+        },
+        "props": {
+          "alignItems": "center",
+          "justify": "space-between",
+          "style": {
+            "backgroundColor": "#0a1a2a",
+            "borderBottom": "1px solid #1e3a5f",
+            "padding": "10px 20px"
+          }
+        },
+        "type": "ia.container.flex"
+      },
+      {
+        "children": [
+          {
+            "meta": {
+              "name": "lbl_cuarto"
+            },
+            "props": {
+              "style": {
+                "color": "#7aaac8",
+                "fontSize": "12px"
+              },
+              "text": "Temperatura de cuarto"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "val_cuarto"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "numberFormat({[default]PLC_PRG/Baja_Temp}, \"#0.00\") + \" °C\""
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#e0f0ff",
+                "fontSize": "28px",
+                "fontWeight": "500"
+              }
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "lbl_iny"
+            },
+            "props": {
+              "style": {
+                "color": "#4fc3f7",
+                "fontSize": "13px"
+              },
+              "text": "Inyeccion: -18.3 C"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "lbl_sp"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "\"Setpoint cuarto \"+ numberFormat({[default]PLC_PRG/Baja_SP}, \"#0.00\") + \" °C\""
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#4fc3f7",
+                "fontSize": "13px"
+              }
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "lbl_dsh"
+            },
+            "props": {
+              "style": {
+                "color": "#ffb74d",
+                "fontSize": "13px"
+              },
+              "text": "Setpoint deshielo: 8.0 C"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "lbl_est"
+            },
+            "props": {
+              "style": {
+                "color": "#7aaac8",
+                "fontSize": "12px",
+                "marginTop": "12px"
+              },
+              "text": "Estado de componentes"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "comp"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "\"Compresor: \"+ if({[default]PLC_PRG/Baja_On},\"ON\",\"OFF\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#66bb6a",
+                "fontSize": "13px"
+              }
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "fan"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "\"Compresor: \"+ if({[default]PLC_PRG/Baja_On},\"ON\",\"OFF\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#66bb6a",
+                "fontSize": "13px"
+              }
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "dsh"
+            },
+            "props": {
+              "style": {
+                "color": "#777777",
+                "fontSize": "13px"
+              },
+              "text": "Deshielo: Inactivo"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "cool"
+            },
+            "propConfig": {
+              "props.text": {
+                "binding": {
+                  "config": {
+                    "expression": "\"Compresor: \"+ if({[default]PLC_PRG/Baja_On},\"ON\",\"OFF\")"
+                  },
+                  "type": "expr"
+                }
+              }
+            },
+            "props": {
+              "style": {
+                "color": "#66bb6a",
+                "fontSize": "13px"
+              }
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "meta": {
+              "name": "lbl_ajustes"
+            },
+            "props": {
+              "style": {
+                "color": "#7aaac8",
+                "fontSize": "12px",
+                "marginTop": "16px"
+              },
+              "text": "Ajustar Setpoints"
+            },
+            "type": "ia.display.label"
+          },
+          {
+            "children": [
+              {
+                "meta": {
+                  "name": "lbl"
+                },
+                "props": {
+                  "style": {
+                    "color": "#7aaac8",
+                    "fontSize": "13px"
+                  },
+                  "text": "Setpoint cuarto"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "input_sp_cuarto"
+                },
+                "propConfig": {
+                  "props.value": {
+                    "binding": {
+                      "config": {
+                        "bidirectional": true,
+                        "fallbackDelay": 2.5,
+                        "mode": "direct",
+                        "tagPath": "[default]PLC_PRG/Baja_SP"
+                      },
+                      "type": "tag"
+                    }
+                  }
+                },
+                "props": {
+                  "style": {
+                    "backgroundColor": "#0a1520",
+                    "borderColor": "#1e6a9e",
+                    "color": "#e0f0ff",
+                    "textAlign": "right",
+                    "width": "90px"
+                  }
+                },
+                "type": "ia.input.numeric-entry-field"
+              }
+            ],
+            "meta": {
+              "name": "row_sp_cuarto"
+            },
+            "props": {
+              "alignItems": "center",
+              "justify": "space-between",
+              "style": {
+                "padding": "4px 0"
+              }
+            },
+            "type": "ia.container.flex"
+          },
+          {
+            "children": [
+              {
+                "meta": {
+                  "name": "lbl"
+                },
+                "props": {
+                  "style": {
+                    "color": "#7aaac8",
+                    "fontSize": "13px"
+                  },
+                  "text": "Setpoint deshielo"
+                },
+                "type": "ia.display.label"
+              },
+              {
+                "meta": {
+                  "name": "input_sp_deshielo"
+                },
+                "props": {
+                  "style": {
+                    "backgroundColor": "#0a1520",
+                    "borderColor": "#1e6a9e",
+                    "color": "#e0f0ff",
+                    "textAlign": "right",
+                    "width": "90px"
+                  },
+                  "value": 8
+                },
+                "type": "ia.input.numeric-entry-field"
+              }
+            ],
+            "meta": {
+              "name": "row_sp_deshielo"
+            },
+            "props": {
+              "alignItems": "center",
+              "justify": "space-between",
+              "style": {
+                "padding": "4px 0"
+              }
+            },
+            "type": "ia.container.flex"
+          }
+        ],
+        "meta": {
+          "name": "card"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "backgroundColor": "#0d1b2a",
+            "border": "1px solid #1e6a9e",
+            "borderRadius": "16px",
+            "boxShadow": "0 0 24px rgba(30,106,158,0.35)",
+            "gap": "4px",
+            "margin": "12px",
+            "padding": "20px"
+          }
+        },
+        "type": "ia.container.flex"
+      }
+    ],
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "backgroundColor": "#081420",
+        "gap": "0px",
+        "height": "100%",
+        "padding": "0px"
+      }
+    },
+    "type": "ia.container.flex"
+  }
+}
