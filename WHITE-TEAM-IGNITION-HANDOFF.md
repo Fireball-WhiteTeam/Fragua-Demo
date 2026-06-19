@@ -59,19 +59,19 @@ Same creds for both edges:
 
 Also documented in `.agent/CREDENTIALS.md` in the [`Fragua-Demo`](https://github.com/fireball-industries/Fragua-Demo) repo workspace. **Gitignored — never commit, never paste in Slack, never email.** Ask me if you don't have access; I'll get you in.
 
-### 3. Network access — EmberNET Endpoint v0.0.23 (only path)
+### 3. Network access — EmberNET Endpoint v0.0.28 (only path)
 
 Designer talks to the gateway over **TCP/8088** (config session) and **TCP/8060** (Gateway Network probing). The edge VMs sit behind Azure NSGs and are **not** reachable from the public internet by design. The only supported access path is the **EmberNET Endpoint Windows client** (`embernetlite-windows`), which gives your machine a Ziti-routed presence inside the Fragua/Flux mesh — once enrolled, Designer talks to the edges as if you were on the cluster.
 
-> **Required MSI version: v0.0.23 or newer.** v0.0.22 ships with a service-startup nil-pointer panic that blocks install on every Windows machine (MSI Error 1920 / 1603). The hotfix landed in [embernetlite-windows#1](https://github.com/Embernet-ai/embernetlite-windows/pull/1) and was tagged + published as v0.0.23 on 2026-05-29. **Do not try v0.0.22 — it will fail.** If your install rolls back, you almost certainly grabbed the older MSI; redownload from the release link below.
+> **Required MSI version: v0.0.28 or newer.** Earlier hotfix history kept here for context — v0.0.22 had a service-startup nil-pointer panic; v0.0.23 fixed that; v0.0.24–v0.0.28 shipped the auth + enrollment fixes (dashboard URL, AAD scope, bearer-token wiring, openvpn-empty acceptance). Do not use anything older than v0.0.28 — earlier versions will fail enrollment against the current dashboard + provisioner.
 
 #### Step 1 — Download the signed MSI
 
 | Release | Signed MSI |
 |---|---|
-| **v0.0.23** | https://github.com/Embernet-ai/embernetlite-windows/releases/download/v0.0.23/EmberNETEndpoint-Setup-x64.msi |
+| **v0.0.28** | https://github.com/Embernet-ai/embernetlite-windows/releases/download/v0.0.28/EmberNETEndpoint-Setup-x64.msi |
 
-If GitHub auth is needed (private repo), use `gh release download v0.0.23 -R Embernet-ai/embernetlite-windows --pattern '*.msi' -D .` from a shell where `gh auth status` is green.
+If GitHub auth is needed (private repo), use `gh release download v0.0.28 -R Embernet-ai/embernetlite-windows --pattern '*.msi' -D .` from a shell where `gh auth status` is green.
 
 #### Step 2 — Install
 
@@ -88,9 +88,9 @@ sc query EmberNETEndpoint
 # STATE: 4 RUNNING
 ```
 
-If you see anything other than `RUNNING`, **stop and check the version** — v0.0.22 panics ~5s after `START_PENDING`. The MSI you installed needs to be v0.0.23 or newer (`& 'C:\Program Files\EmberNETEndpoint\embernetendpoint.exe' --version` should return `0.0.23`).
+If you see anything other than `RUNNING`, **stop and check the version**. The MSI you installed needs to be v0.0.28 or newer (`& 'C:\Program Files\EmberNETEndpoint\embernetendpoint.exe' --version` should return `0.0.28` or higher).
 
-> **Note on coexistence with other VPN clients (Netbird, WireGuard standalone, OpenVPN sidecars):** v0.0.23 installs cleanly alongside them. The bundled WireGuard binary only activates when the tunneler dials a Flux service.
+> **Note on coexistence with other VPN clients (Netbird, WireGuard standalone, OpenVPN sidecars):** v0.0.28 installs cleanly alongside them. The bundled WireGuard binary only activates when the tunneler dials a Flux service.
 
 #### Step 3 — Accept the EULA + enroll
 
