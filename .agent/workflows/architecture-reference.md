@@ -19,22 +19,28 @@
                      │ Flux Zero-Trust Overlay (Ziti)
         ┌────────────┴────────────┐
         │                         │
-┌───────▼──────────┐    ┌────────▼──────────┐
-│  fragua-edge-01  │    │  fragua-edge-02   │
-│  (K3s Server)    │    │  (K3s Agent)      │
-│  Ubuntu 24.04    │    │  Ubuntu 24.04     │
-│                  │    │                   │
-│  Pods:           │    │  Pods:            │
-│  ├── CODESYS     │    │  ├── CODESYS      │
-│  │   (codesys-   │    │  │   (codesys-    │
-│  │    control)   │    │  │    control)    │
-│  ├── Ign Edge    │    │  ├── Ign Edge     │
-│  │   (Edge ONLY) │    │  │   (Edge ONLY)  │
-│  └── Flux Tunnel │    │  └── Flux Tunnel  │
-│                  │    │                   │
-│  WG: 100.64.0.X │    │  WG: 100.64.0.Y  │
-└──────────────────┘    └───────────────────┘
+┌─────────────────────┐    ┌──────────────────────┐
+│   fragua-edge-01    │    │   fragua-edge-02     │
+│   (K3s Server)      │    │   (K3s Agent)        │
+│   Ubuntu 24.04      │    │   Ubuntu 24.04       │
+│                     │    │                      │
+│   Host container:   │    │   Host container:    │
+│   embernet-endpoint │    │   embernet-endpoint  │
+│   (podman --network │    │   (podman --network  │
+│    host, v0.0.40)   │    │    host, v0.0.40)    │
+│   ├── WG embernet0  │    │   ├── WG embernet0   │
+│   ├── Flux/Ziti     │    │   ├── Flux/Ziti      │
+│   └── loopback API  │    │   └── loopback API   │
+│                     │    │                      │
+│   Pods (K3s):       │    │   Pods (K3s):        │
+│   ├── CODESYS       │    │   ├── CODESYS        │
+│   └── Ign Edge      │    │   └── Ign Edge       │
+│                     │    │                      │
+│   WG: 100.64.0.30   │    │   WG: 100.64.0.36    │
+└─────────────────────┘    └──────────────────────┘
 ```
+
+> **2026-06-04 architecture change.** The legacy `wg-quick@embernet0` systemd unit + `embernet-wg-watchdog.timer` + in-cluster `flux-tunnel-fragua-edge-*` DaemonSet pods were ALL replaced by a single per-edge **embernet-endpoint container** running on the host with `--network host`. The container owns the `embernet0` netlink interface (kernel WG via wgctrl), the Flux/Ziti tunneler, and the loopback API at `127.0.0.1:8765`. K3s flannel-iface stays bound to `embernet0` — flannel doesn't care who created the interface.
 
 ## Data Flow
 
@@ -55,10 +61,10 @@ EmberNET Dashboard (tag display, alarms, trends)
 
 | Layer | Technology | Ports |
 |---|---|---|
-| Underlay | Azure VNet / Public IP | SSH:22, WG:51820 |
-| VPN | WireGuard | 100.64.0.0/24 |
-| Mesh | Flux/Ziti (zero-trust) | 6262 (controller) |
-| K8s | K3s / Flannel (wg0 iface) | 6443, 10250 |
+| Underlay | Azure VNet / Public IP | SSH:22 (admin), UDP/443 (WG mgmt) |
+| VPN | WireGuard via embernet-endpoint daemon | `embernet0` iface, 100.64.0.0/10 |
+| Mesh | Flux/Ziti (zero-trust) via embernet-endpoint daemon | `vpn.embernet.ai:443`, `flux.embernet.ai:443`, `cdn.embernet.ai:443` |
+| K8s | K3s / Flannel (`flannel-iface: embernet0`) | 6443, 10250 |
 | App | CODESYS + Ignition Edge | OPC-UA:4840, HTTP:8088 |
 
 ## Container Images
@@ -67,7 +73,7 @@ EmberNET Dashboard (tag display, alarms, trends)
 |---|---|---|
 | CODESYS AMD64 | `codesys/codesys-control` | App Store / HelmChart CRD |
 | Ignition Edge | `inductiveautomation/ignition` | App Store / HelmChart CRD |
-| Flux Edge Tunnel | (from flux-helm-charts) | Helm CLI |
+| EmberNET Endpoint (per-edge host VPN + Ziti) | `ghcr.io/embernet-ai/embernetlite:0.0.40` | `podman run --network host` (NOT k3s) |
 
 ## K8s Labels (Required)
 
