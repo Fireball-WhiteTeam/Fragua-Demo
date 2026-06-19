@@ -11,15 +11,19 @@ Deploy 2 Azure Ubuntu 24.04 VMs into EmberNet with CODESYS + Ignition Edge.
 - Configure NSG (SSH + WireGuard UDP/51820)
 - Verify SSH access
 
-### Phase 2: Base OS + WireGuard
-- Update packages, install nfs-common + wireguard + podman
-- Configure WireGuard peers with embernet003
-- Assign IPs from 100.64.0.0/24
-- Verify handshake
+### Phase 2: Base OS + embernet-endpoint container (replaces both wg-quick AND in-cluster flux-tunnel)
+- Update packages, install nfs-common + podman
+- One-time host setup:
+  - `mkdir -p /etc/embernet /var/lib/embernet /var/log/embernet /run/embernet`
+  - `chown 987:987 /var/lib/embernet /var/log/embernet /run/embernet` (embernet UID)
+  - Write `/etc/embernet/env` with `EMBERNET_TENANT_HINT=fragua` and `EMBERNET_SAFETY_WATCHDOG_DISABLED=1` (Azure VM compat)
+- Enroll the device against the dashboard (one-time): `podman run --rm -it --network host -v /var/lib/embernet:/var/lib/embernet ghcr.io/embernet-ai/embernetlite:0.0.40 enroll --tenant-id fragua --device-name <hostname>`
+- Run the container in `--restart always` mode (full command in `.agent/CREDENTIALS.md` §WireGuard mesh)
+- Verify `wg show embernet0` shows fresh handshake + `embernetctl status` shows Flux + WireGuard both `connected`
 
 ### Phase 3: K3s Cluster
-- VM1: K3s server bound to WG IP (--snapshotter=native)
-- VM2: K3s agent joining VM1
+- VM1: K3s server bound to `embernet0` IP (`flannel-iface: embernet0`)
+- VM2: K3s agent joining VM1 over the embernet0 mesh
 - Apply embernet.ai/* node labels
 
 ### Phase 4: Core Platform
@@ -27,10 +31,10 @@ Deploy 2 Azure Ubuntu 24.04 VMs into EmberNet with CODESYS + Ignition Edge.
 - ghcr-secret in all namespaces
 - flux-controller-admin secret
 
-### Phase 5: Flux Edge Tunnel
-- Generate Ziti JWTs from Flux management API
-- Deploy flux-edge-tunnel v2.0.8+ per node
-- Verify tunnel pods + dashboard visibility
+### Phase 5: Flux/Ziti dial policies (cluster-side wiring)
+- The embernet-endpoint daemon owns the Ziti client on each node (no `flux-edge-tunnel` DaemonSet anymore)
+- Each enrolled device-id needs the `fragua-edge-dial` role attribute set on it (the Fragua dial policies — `fragua-ignition-cloud-dial`, `fragua-anvilmq-mqtt-dial` — include `#fragua-edge-dial` so any device with that attr gets dial access)
+- See `.agent/CREDENTIALS.md` §Ziti / Flux endpoints for the policy table
 
 ### Phase 6: CODESYS
 - Deploy CODESYS AMD64 via App Store / HelmChart CRD
