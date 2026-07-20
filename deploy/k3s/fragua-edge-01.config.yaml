@@ -1,14 +1,19 @@
-# /etc/rancher/k3s/config.yaml on fragua-edge-01 (K3s server)
-# Applied 2026-05-19. Cluster: fragua-demo. K3s v1.35.4+k3s1.
+# /etc/rancher/k3s/config.yaml on fragua-edge-01 (K3s control plane + etcd)
+# Cluster: fragua-demo. K3s v1.35.4+k3s1.
+#
+# Applied 2026-05-19. Migrated wg0 -> embernet0 on 2026-06-01 when the
+# embernet-endpoint container took ownership of the WireGuard interface.
+# Re-addressed to the 100.64.2.0/24 mesh subnet (was 100.64.0.30/24).
+# Verified against the live host 2026-07-20.
 
-advertise-address: 100.64.0.30
-bind-address: 100.64.0.30
+advertise-address: 100.64.2.2
+bind-address: 100.64.2.2
 cluster-init: true
-flannel-iface: wg0
+flannel-iface: embernet0
 kube-apiserver-arg:
 - service-node-port-range=443-32767
 node-external-ip: 20.80.241.221
-node-ip: 100.64.0.30
+node-ip: 100.64.2.2
 node-label:
 - embernet.ai/site=fragua
 - embernet.ai/facility=demo
@@ -17,3 +22,9 @@ node-name: fragua-edge-01
 resolv-conf: /run/systemd/resolve/resolv.conf
 snapshotter: overlayfs
 write-kubeconfig-mode: '0644'
+# Old 100.64.0.30 address retained as a SAN so kubeconfigs and the Rancher
+# agent issued before the subnet move keep validating against the apiserver.
+tls-san:
+- 100.64.2.2
+- 100.64.0.30
+- 20.80.241.221
