@@ -1,4 +1,4 @@
-# Fragua Demo — Deployment Workflow
+# Fragua Demo: Deployment Workflow
 
 ## Overview
 Deploy 2 Azure Ubuntu 24.04 VMs into EmberNet with CODESYS + Ignition Edge.
@@ -17,7 +17,7 @@ Deploy 2 Azure Ubuntu 24.04 VMs into EmberNet with CODESYS + Ignition Edge.
   - `mkdir -p /etc/embernet /var/lib/embernet /var/log/embernet /run/embernet`
   - `chown 987:987 /var/lib/embernet /var/log/embernet /run/embernet` (embernet UID)
   - Write `/etc/embernet/env` with `EMBERNET_TENANT_HINT=fragua` and `EMBERNET_SAFETY_WATCHDOG_DISABLED=1` (Azure VM compat)
-- Enroll the device against the dashboard (one-time). **Use v0.0.48+ — earlier versions
+- Enroll the device against the dashboard (one-time). **Use v0.0.48+, earlier versions
   write the OTT token but never exchange it for a certificate**, leaving the node
   permanently unenrolled while still reporting `connected`:
   ```
@@ -29,10 +29,10 @@ Deploy 2 Azure Ubuntu 24.04 VMs into EmberNet with CODESYS + Ignition Edge.
   ```
   Flags are single-dash (`-tenant-id`, not `--tenant-id`). This is an **Azure AD
   device-code flow**: read the `user_code` out of `podman logs embernet-enroll` and
-  complete the sign-in at <https://login.microsoft.com/device>. Run detached — the
+  complete the sign-in at <https://login.microsoft.com/device>. Run detached, the
   container blocks until someone signs in.
 - Run the container in `--restart always` mode (full command in `.agent/CREDENTIALS.md` §WireGuard mesh)
-- Verify enrollment actually completed — **do not trust `state: connected` alone**:
+- Verify enrollment actually completed: **do not trust `state: connected` alone**:
   - `/var/lib/embernet/identity/embernet.json` must be a multi-KB **JSON** blob
     containing `ztAPI` / `id` / `key`. If it is ~1 KB and starts with `eyJ`, it is
     still a raw JWT and the node is NOT enrolled.
@@ -56,11 +56,11 @@ Deploy 2 Azure Ubuntu 24.04 VMs into EmberNet with CODESYS + Ignition Edge.
 ### Phase 5: Flux/Ziti dial policies (cluster-side wiring)
 - The embernet-endpoint daemon holds the Ziti **API session** on each node (no
   `flux-edge-tunnel` DaemonSet anymore)
-- Each enrolled device-id needs the `fragua-edge-dial` role attribute set on it (the Fragua dial policies — `fragua-ignition-cloud-dial`, `fragua-anvilmq-mqtt-dial` — include `#fragua-edge-dial` so any device with that attr gets dial access)
+- Each enrolled device-id needs the `fragua-edge-dial` role attribute set on it (the Fragua dial policies (`fragua-ignition-cloud-dial`, `fragua-anvilmq-mqtt-dial`) include `#fragua-edge-dial` so any device with that attr gets dial access)
 - See `.agent/CREDENTIALS.md` §Ziti / Flux endpoints for the policy table
 
 > ⚠️ **Not sufficient on its own (as of 2026-07-20).** Role attributes + dial policies
-> grant *authorization* to dial, but embernet-endpoint provides no traffic intercept —
+> grant *authorization* to dial, but embernet-endpoint provides no traffic intercept,
 > it is an SDK client, not a tunneler. The `100.65.0.x` synthetic IPs that Phase 7
 > depends on are therefore absent, and `hasEdgeRouterConnection` is `False` on both
 > edges. See the 2026-07-20 correction in `architecture-reference.md`. Phase 7's

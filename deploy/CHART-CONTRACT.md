@@ -1,4 +1,4 @@
-# EmberNET Helm Chart Contract — Pod Spec, Networking, Storage, Multi-Cluster
+# EmberNET Helm Chart Contract: Pod Spec, Networking, Storage, Multi-Cluster
 
 _Authoritative spec for aligning every `embernet-ai` app chart._
 _Written 2026-07-21, grounded in live verification on the Fragua cluster._
@@ -22,7 +22,7 @@ Everything below concerns **App Store apps only**.
 
 ---
 
-## 2. Deploy paths — what actually creates the workload
+## 2. Deploy paths: what actually creates the workload
 
 ### 2.1 Local / k3s tenant → `HelmChart` CRD
 
@@ -71,12 +71,12 @@ Rule of thumb: **if a chart only works on k3s, it is not App-Store-ready.**
 
 ---
 
-## 3. Discovery contract — how the dashboard sees the app
+## 3. Discovery contract: how the dashboard sees the app
 
 This is non-negotiable and the single most common cause of "deployed but
 invisible".
 
-### 3.1 Labels — on **both** the pod template and the Service
+### 3.1 Labels: on **both** the pod template and the Service
 
 ```yaml
 labels:
@@ -111,7 +111,7 @@ from non-super-admins (v4.1.01+).
 ### 3.4 Label value legality
 
 Label values must match `(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?`. **`+` is
-illegal** — this is why `gui-type: "web+shell"` was removed; kube-apiserver
+illegal**: this is why `gui-type: "web+shell"` was removed; kube-apiserver
 rejects the whole object. Use `web`; the POD SHELL button is added automatically
 for Admin+.
 
@@ -120,19 +120,19 @@ for Admin+.
 | Missing | Effect |
 |---|---|
 | `embernet.ai/store-app=true` | never discovered; invisible everywhere |
-| `app.kubernetes.io/instance` | falls back to `app`, then pod name (ephemeral — breaks on restart) |
-| `embernet.ai/gui-port` | dashboard scans container ports, takes the first — often wrong |
+| `app.kubernetes.io/instance` | falls back to `app`, then pod name (ephemeral, breaks on restart) |
+| `embernet.ai/gui-port` | dashboard scans container ports, takes the first, often wrong |
 | `embernet.ai/gui-type` | defaults to `web` if any port found |
 | Service ≠ Release.Name | proxy targets wrong host → 502 |
 
 ---
 
-## 4. Networking tiers — pick exactly one
+## 4. Networking tiers: pick exactly one
 
 **This is the section most charts get wrong.** Verified empirically on
 `fragua-edge-01`, 2026-07-21.
 
-### Tier 0 — Local only (default; most apps)
+### Tier 0: Local only (default; most apps)
 
 Talks only to things inside the cluster. Needs nothing special. Node-RED,
 Grafana, InfluxDB, Postgres, CODESYS all sit here.
@@ -142,7 +142,7 @@ spec:
   # no hostNetwork, no capabilities, standard CNI
 ```
 
-### Tier 1 — Dials a REMOTE EmberNET service over the Flux/Ziti overlay
+### Tier 1: Dials a REMOTE EmberNET service over the Flux/Ziti overlay
 
 **The critical fact:** `embernet-endpoint` intercepts the overlay by binding
 `100.65.0.0/16` on the **host's loopback** and proxying in userspace. That is
@@ -158,7 +158,7 @@ spec:
 > `flux-edge-tunnel` DaemonSet ran a node-scoped tproxy that served pods too.
 > The endpoint replaced its host function but not its cluster function.
 
-**Correct fix — per-pod Ziti identity.** Do NOT reach for `hostNetwork` here.
+**Correct fix: per-pod Ziti identity.** Do NOT reach for `hostNetwork` here.
 
 ```yaml
 provisioner:
@@ -171,30 +171,30 @@ provisioner:
 
 Two init containers run before the app:
 
-1. `provisioner-fetch` — POSTs the shared secret, receives a Ziti enrollment
+1. `provisioner-fetch`: POSTs the shared secret, receives a Ziti enrollment
    JWT, writes `/shared/flux.jwt`
-2. `ziti-enroll` — `ziti edge enroll --jwt /shared/flux.jwt --out
+2. `ziti-enroll`: `ziti edge enroll --jwt /shared/flux.jwt --out
    /shared/identity.json`
 
 The app mounts the shared `emptyDir` at `/etc/openziti` and dials the overlay
 itself. Reference implementations: `Ignition-Edge-Pod` 1.0.11+,
 `embernet-probe` 1.2.1.
 
-> **Known flake — handle it.** `ziti-cli` sometimes retries the enroll POST
+> **Known flake: handle it.** `ziti-cli` sometimes retries the enroll POST
 > internally. The first attempt succeeds and writes `identity.json`; the second
 > hits `INVALID_ENROLLMENT_TOKEN` and the CLI **exits non-zero anyway**. Under
 > `set -e` the init container fails and the pod CrashLoops with a perfectly good
 > identity on disk. Treat a non-empty `identity.json` containing the `ztAPI` key
-> as success regardless of exit code — see
+> as success regardless of exit code: see
 > `deploy/charts/embernet-probe-1.2.1/templates/deployment.yaml`.
 
 > **Idempotency.** The provisioner deletes existing authenticators before
 > minting a new OTT, so re-enrollment across pod restarts is safe. An OTT can
 > only be redeemed against an identity with no active authenticator.
 
-### Tier 2 — Elevated networking (VPN / tunnel / raw sockets / L2)
+### Tier 2: Elevated networking (VPN / tunnel / raw sockets / L2)
 
-Only for workloads that genuinely manipulate host networking — an endpoint
+Only for workloads that genuinely manipulate host networking, an endpoint
 daemon, a router, a WireGuard peer, a packet probe.
 
 ```yaml
@@ -225,7 +225,7 @@ If a hostNetwork pod must resolve overlay names, use `dnsPolicy: Default`.
 Alternative for a single fixed name: `hostAliases` mapping the FQDN to its
 synthetic IP.
 
-**Host DNS prerequisite** (node-level, not chart-level) — required for Tier 2
+**Host DNS prerequisite** (node-level, not chart-level), required for Tier 2
 name resolution:
 
 ```ini
@@ -237,7 +237,7 @@ Domains=~cluster.local ~flux.internal
 plus `/etc/resolv.conf` → `/run/systemd/resolve/stub-resolv.conf`. If resolv.conf
 is a static file ("foreign" mode), resolved's routing is bypassed entirely and
 overlay names will not resolve. Also ensure no stale drop-in lists an upstream
-resolver ahead of `127.0.0.1` for `~cluster.local` — an authoritative NXDOMAIN
+resolver ahead of `127.0.0.1` for `~cluster.local`, an authoritative NXDOMAIN
 from Azure ends the lookup before the endpoint is asked.
 
 **Port conflicts.** `hostNetwork` binds the real node port. Two Tier-2 pods
@@ -257,7 +257,7 @@ mistake. `hostNetwork` is not a substitute for a Ziti identity.
 
 ---
 
-## 5. Storage contract — must survive reboots, reschedules, upgrades
+## 5. Storage contract: must survive reboots, reschedules, upgrades
 
 ### 5.1 Always name the StorageClass
 
@@ -274,7 +274,7 @@ StorageClasses both flagged default (`local-path` and `longhorn`), which makes
 binding for a class-less PVC ambiguous. Fixed 2026-07-21 by demoting
 `local-path`; charts should not depend on that having been done.
 
-### 5.2 local-path vs longhorn — this decides reboot survival
+### 5.2 local-path vs longhorn: this decides reboot survival
 
 | | `local-path` | `longhorn` |
 |---|---|---|
@@ -285,7 +285,7 @@ binding for a class-less PVC ambiguous. Fixed 2026-07-21 by demoting
 | Binding mode | WaitForFirstConsumer | Immediate |
 
 **Any stateful app must use `longhorn`.** `local-path` silently pins a workload
-to one node forever — the pod reschedules and comes up empty rather than failing
+to one node forever, the pod reschedules and comes up empty rather than failing
 loudly, which is the worst failure mode.
 
 ### 5.3 Secrets are namespace-local
@@ -307,9 +307,9 @@ Do not put everything in one volume. Ignition Edge is the model:
 
 | PVC | Size | Why separate |
 |---|---|---|
-| `<release>-data` | 20Gi | gateway db/config — the thing you must not lose |
-| `<release>-backup` | 50Gi | `.gwbk` archives — large, regenerable |
-| `<release>-modules` | 5Gi | modules — replaceable from image |
+| `<release>-data` | 20Gi | gateway db/config, the thing you must not lose |
+| `<release>-backup` | 50Gi | `.gwbk` archives, large, regenerable |
+| `<release>-modules` | 5Gi | modules, replaceable from image |
 
 This lets you resize/reclaim independently and keeps a backup blowout from
 filling the config volume.
@@ -345,7 +345,7 @@ nodeSelector:
   kubernetes.io/hostname: "<node>"    # required for Tier 2; recommended for Tier 1
 ```
 
-**Sizing reality check.** Edge nodes are small — Fragua runs 2 vCPU with 8 GB
+**Sizing reality check.** Edge nodes are small: Fragua runs 2 vCPU with 8 GB
 (edge-01) and 4 GB (edge-02). An Ignition JVM defaulting to a 1 GB heap on a
 4 GB node alongside Longhorn and etcd will cause disk/memory pressure. Set
 `gateway.heap.max` explicitly (512 MB on edge nodes). Requests that exceed a
@@ -460,7 +460,7 @@ spec:
 ## 8. Versioning and release hygiene
 
 1. **Always pin `spec.version`.** An unpinned HelmChart CRD silently upgrades on
-   the next reconcile — that is how you get an unplanned production change.
+   the next reconcile, that is how you get an unplanned production change.
 2. **Release name = `<chart>-<node>`.** Enforces the one-per-node singleton model
    and keeps the Service FQDN stable.
 3. **Deleting workloads without `helm uninstall` orphans the release.** The
@@ -469,7 +469,7 @@ spec:
    tried to upgrade a phantom instead of installing clean. Always
    `helm uninstall`, or delete the `HelmChart` CRD and let the controller clean up.
 4. **Singleton apps** (`Singleton == true`) are blocked from a second install
-   with the same release name — by design.
+   with the same release name, by design.
 
 ---
 
@@ -481,7 +481,7 @@ Run this against every chart in `HelmRepoURLs`:
 - [ ] `app.kubernetes.io/instance: {{ .Release.Name }}` on pod template
 - [ ] `gui-type` / `gui-port` present and correct; no `+` in any label value
 - [ ] Service named exactly `{{ .Release.Name }}`
-- [ ] `persistence.storageClass` explicit — `longhorn` for anything stateful
+- [ ] `persistence.storageClass` explicit, `longhorn` for anything stateful
 - [ ] Separate PVCs by lifecycle (data / backup / modules)
 - [ ] `Recreate` strategy or StatefulSet if an RWO volume is mounted
 - [ ] Networking tier chosen deliberately; `hostNetwork` only for Tier 2

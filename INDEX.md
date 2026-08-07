@@ -1,9 +1,9 @@
-# 🗺️ Fragua Demo — Resource Index
+# 🗺️ Fragua Demo: Resource Index
 
 > Single-page index to every doc, runbook, chart, script, config, and live URL this repo touches.
 > Open this when you need to find something *fast*.
 > Open [`README.md`](README.md) when you need the *narrative*.
-> Open [`.agent/CREDENTIALS.md`](.agent/CREDENTIALS.md) when you need to actually log in (gitignored — workspace-local only).
+> Open [`.agent/CREDENTIALS.md`](.agent/CREDENTIALS.md) when you need to actually log in (gitignored, workspace-local only).
 
 ---
 
@@ -13,7 +13,7 @@
 |---|---|
 | [`README.md`](README.md) | Project overview. What Fragua is, what's deployed, how users interact via the EmberNet Dashboard + CODESYS once the Endpoint Controller lands. **Start here unless you already know what you're looking for.** |
 | [`INDEX.md`](INDEX.md) | This file. The lookup table. |
-| [`.gitignore`](.gitignore) | Excludes per-device JWTs, identity blobs, `.agent/` scratch + credentials. **If you find a JWT in a commit, that's a bug — rotate the identity.** |
+| [`.gitignore`](.gitignore) | Excludes per-device JWTs, identity blobs, `.agent/` scratch + credentials. **If you find a JWT in a commit, that's a bug, rotate the identity.** |
 
 ---
 
@@ -27,7 +27,7 @@
 
 ---
 
-## 🌪️ Phase 7b — Flux Overlay
+## 🌪️ Phase 7b: Flux Overlay
 
 | File | Purpose |
 |---|---|
@@ -42,7 +42,7 @@
 | [`deploy/wireguard/fragua-edge-01.wg0.conf`](deploy/wireguard/fragua-edge-01.wg0.conf) | edge-01 ArcNet config (peer block targets the hub) |
 | [`deploy/wireguard/fragua-edge-02.wg0.conf`](deploy/wireguard/fragua-edge-02.wg0.conf) | edge-02 ArcNet config |
 | [`deploy/wireguard/embernet003-peer-addition.txt`](deploy/wireguard/embernet003-peer-addition.txt) | Peer blocks to append on the hub for both Fragua edges. Paste-in-ready. |
-| [`deploy/wireguard/ENGINEER-FIX.md`](deploy/wireguard/ENGINEER-FIX.md) | Convention drift writeup — `ListenPort` semantics on peers vs hub, OT firewall traversal, MTU. **The "why" behind the "why 443?" question.** |
+| [`deploy/wireguard/ENGINEER-FIX.md`](deploy/wireguard/ENGINEER-FIX.md) | Convention drift writeup, `ListenPort` semantics on peers vs hub, OT firewall traversal, MTU. **The "why" behind the "why 443?" question.** |
 | [`deploy/wireguard/AWS-RECOVERY.md`](deploy/wireguard/AWS-RECOVERY.md) | Recovery procedure for the AWS-side ArcNet nodes (embernet004/005/006) when the mesh wedges. |
 
 ---
@@ -51,7 +51,7 @@
 
 | File | Purpose |
 |---|---|
-| [`deploy/k3s/fragua-edge-01.config.yaml`](deploy/k3s/fragua-edge-01.config.yaml) | Clusters server config — uses `overlayfs`. **NOT** `overlay`. The k3s containerd build does not accept that string. Stop trying. |
+| [`deploy/k3s/fragua-edge-01.config.yaml`](deploy/k3s/fragua-edge-01.config.yaml) | Clusters server config, uses `overlayfs`. **NOT** `overlay`. The k3s containerd build does not accept that string. Stop trying. |
 | [`deploy/k3s/fragua-edge-02.config.yaml`](deploy/k3s/fragua-edge-02.config.yaml) | Clusters agent config |
 | [`deploy/k3s/tenant-namespace.md`](deploy/k3s/tenant-namespace.md) | Tenant namespace + network policy setup |
 
@@ -62,7 +62,7 @@
 | File | Purpose |
 |---|---|
 | [`deploy/flux/helm-install.sh`](deploy/flux/helm-install.sh) | flux-edge-tunnel v2.0.8 helm install with identity persistence on Longhorn RWX. **Identity persistence is not optional.** |
-| `deploy/flux/jwts/` | Per-device enrollment JWTs **(gitignored — never commit, never paste, never email)** |
+| `deploy/flux/jwts/` | Per-device enrollment JWTs **(gitignored, never commit, never paste, never email)** |
 
 ---
 
@@ -87,7 +87,7 @@
 | File | Purpose |
 |---|---|
 | [`deploy/ignition/install-ignition-edge.sh`](deploy/ignition/install-ignition-edge.sh) | Podman install of Ignition Edge 8.3.6 |
-| [`deploy/ignition/project-deploy.md`](deploy/ignition/project-deploy.md) | How to merge custom Perspective views into the `Edge` project. Edge edition does a **hard name check** — your project must be named `Edge`. Not "edge". Not "Edge-Fragua". `Edge`. The exact string. |
+| [`deploy/ignition/project-deploy.md`](deploy/ignition/project-deploy.md) | How to merge custom Perspective views into the `Edge` project. Edge edition does a **hard name check**: your project must be named `Edge`. Not "edge". Not "Edge-Fragua". `Edge`. The exact string. |
 | [`deploy/ignition/project-redeploy.sh`](deploy/ignition/project-redeploy.sh) | Idempotent script to push project updates to the Edge container |
 
 ---
@@ -109,11 +109,11 @@
 
 ---
 
-## 🔑 Credentials & Operator Artifacts (Gitignored — Stay That Way)
+## 🔑 Credentials & Operator Artifacts (Gitignored: Stay That Way)
 
 | File | Purpose |
 |---|---|
-| `.agent/CREDENTIALS.md` | All operating credentials + tool paths + endpoints + caveats. **Gitignored — never commit. If you see this in a commit diff, stop the commit.** |
+| `.agent/CREDENTIALS.md` | All operating credentials + tool paths + endpoints + caveats. **Gitignored, never commit. If you see this in a commit diff, stop the commit.** |
 | `.agent/context.md` | Inherited session context |
 | `.agent/workflows/` | Workflow definitions |
 | `.agent/repos/` | Cloned chart + provisioner repos for local edit + PR work **(gitignored)** |
@@ -124,9 +124,9 @@
 
 | Repo | PR | What it fixes |
 |---|---|---|
-| [`Embernet-ai/embernet-provisioner`](https://github.com/Embernet-ai/embernet-provisioner/pull/1) | #1 | **Five** runtime fixes — httpx 0.27 `verify=` kwarg, wg-easy v15 `id`-on-create, wg-easy `/api/session` 404 best-effort, OpenVPN sidecar 500 best-effort, authenticator-cleanup for idempotent re-enrollment. |
+| [`Embernet-ai/embernet-provisioner`](https://github.com/Embernet-ai/embernet-provisioner/pull/1) | #1 | **Five** runtime fixes, httpx 0.27 `verify=` kwarg, wg-easy v15 `id`-on-create, wg-easy `/api/session` 404 best-effort, OpenVPN sidecar 500 best-effort, authenticator-cleanup for idempotent re-enrollment. |
 | [`Embernet-ai/Ignition-Edge-Pod`](https://github.com/Embernet-ai/Ignition-Edge-Pod/pull/1) | #1 | Opt-in `provisioner.enabled=true` self-enrollment via the same init-container pattern as embernet-probe. |
-| [`Embernet-ai/Codesys-AMD-64-x86`](https://github.com/Embernet-ai/Codesys-AMD-64-x86/pull/1) | #1 | Install hardening — equivs `codemeter-lite` shim, drop the silent `apt-get install -f -y` package-removing footgun, hard post-install assertion the binary exists. **Same fix needs to backport to cp02.** |
+| [`Embernet-ai/Codesys-AMD-64-x86`](https://github.com/Embernet-ai/Codesys-AMD-64-x86/pull/1) | #1 | Install hardening, equivs `codemeter-lite` shim, drop the silent `apt-get install -f -y` package-removing footgun, hard post-install assertion the binary exists. **Same fix needs to backport to cp02.** |
 
 ---
 
@@ -139,8 +139,8 @@
 | Flux Controller | `https://flux.embernet.ai:443` |
 | Flux Router (data plane, SNI-passthrough) | `cdn.embernet.ai:443` |
 | Provisioner self-enroll API | `https://provisioner.embernet.ai/api/v1/provision` |
-| Ignition Edge UI — fragua-edge-01 | `http://20.80.241.221:8088` |
-| Ignition Edge UI — fragua-edge-02 | `http://52.176.39.25:8088` |
+| Ignition Edge UI, fragua-edge-01 | `http://20.80.241.221:8088` |
+| Ignition Edge UI, fragua-edge-02 | `http://52.176.39.25:8088` |
 
 ---
 
@@ -150,7 +150,7 @@
 |---|---|
 | Fragua Rancher cluster CR | `c-j7gtg` (displayName: `Fragua`) |
 | Fragua tenant CR | `tenant-fragua-demo/fragua-demo` |
-| Flux edge router | `flux-router-v2` (id `P.csD4A7T1`) — replaced legacy `relay-us-east-1` |
+| Flux edge router | `flux-router-v2` (id `P.csD4A7T1`), replaced legacy `relay-us-east-1` |
 | `ignition-cloud` Flux service | id `6H5U38Lo55M5aY9Oforg3` |
 | `embernet-dashboard-callback` Flux service | id `3yTGmAyMZej2B2OEEbUD2I` |
 | Bind side (cp005 daemonset) | `flux-tunnel-embernet-cp005-flux-edge-tunnel` |
@@ -205,13 +205,13 @@ sudo k3s kubectl -n flux-system logs ds/flux-tunnel-fragua-edge-01-flux-edge-tun
 
 ## 🚧 Open Follow-ups
 
-1. **Wire Ignition Edge → ignition-cloud GW Network connection.** Direct SQLite insert into `WSCONNECTIONSETTINGS` does NOT trigger the Ignition runtime to pick it up — confirmed empirically. Click-config in the Ignition Edge web UI (4 fields, 90 seconds) or import a `.gwbk` slice from a known-good Edge. The SQLite path is a dead end.
+1. **Wire Ignition Edge → ignition-cloud GW Network connection.** Direct SQLite insert into `WSCONNECTIONSETTINGS` does NOT trigger the Ignition runtime to pick it up, confirmed empirically. Click-config in the Ignition Edge web UI (4 fields, 90 seconds) or import a `.gwbk` slice from a known-good Edge. The SQLite path is a dead end.
 2. **Probe → dashboard callback Flux service session refresh.** The `embernet-dashboard-callback` Flux service is fully created on the controller; the probe's SDK fails its `subject_token` refresh against `https://flux.embernet.ai:443/oidc/oauth/token`. Engineer-side controller config investigation needed. Not a probe bug.
-3. **EmberNet Endpoint Controller install** on each Fragua edge — owns downstream OT device discovery + claim. Helm chart forthcoming from Fireball engineering.
-4. **Smoke artifact cleanup** — stale Flux identities `fragua-smoke-*` + leftover ArcNet peers. Housekeeping. Demo doesn't depend on it.
+3. **EmberNet Endpoint Controller install** on each Fragua edge, owns downstream OT device discovery + claim. Helm chart forthcoming from Fireball engineering.
+4. **Smoke artifact cleanup**: stale Flux identities `fragua-smoke-*` + leftover ArcNet peers. Housekeeping. Demo doesn't depend on it.
 
 ---
 
 *The README has the story, this file has the lookup table, `.agent/CREDENTIALS.md` has the keys, and `deploy/AUDIT.md` has the receipts.*
 
-— **Patrick Ryan** — Fireball Industries 🔥
+— **Patrick Ryan**: Fireball Industries 🔥

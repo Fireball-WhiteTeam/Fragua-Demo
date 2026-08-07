@@ -1,4 +1,4 @@
-# Fragua Demo — Architecture Reference
+# Fragua Demo: Architecture Reference
 
 ## Deployment Topology
 
@@ -40,14 +40,14 @@
 └─────────────────────┘    └──────────────────────┘
 ```
 
-> **2026-06-04 architecture change.** The legacy `wg-quick@embernet0` systemd unit + `embernet-wg-watchdog.timer` + in-cluster `flux-tunnel-fragua-edge-*` DaemonSet pods were ALL replaced by a single per-edge **embernet-endpoint container** running on the host with `--network host`. The container owns the `embernet0` netlink interface (kernel WG via wgctrl) and the loopback API at `127.0.0.1:8765`. K3s flannel-iface stays bound to `embernet0` — flannel doesn't care who created the interface.
+> **2026-06-04 architecture change.** The legacy `wg-quick@embernet0` systemd unit + `embernet-wg-watchdog.timer` + in-cluster `flux-tunnel-fragua-edge-*` DaemonSet pods were ALL replaced by a single per-edge **embernet-endpoint container** running on the host with `--network host`. The container owns the `embernet0` netlink interface (kernel WG via wgctrl) and the loopback API at `127.0.0.1:8765`. K3s flannel-iface stays bound to `embernet0`, flannel doesn't care who created the interface.
 
-> **2026-07-20 correction — the Ziti data plane did NOT survive that change.**
+> **2026-07-20 correction: the Ziti data plane did NOT survive that change.**
 > Two facts verified live on both edges today:
 >
 > 1. **Enrollment had never completed.** From 2026-06-01 until today the file at
 >    `/var/lib/embernet/identity/embernet.json` was the raw OTT *enrollment token*,
->    not an enrolled identity — the OTT lapsed 2026-06-08 and the controller showed
+>    not an enrolled identity: the OTT lapsed 2026-06-08 and the controller showed
 >    `authenticators: 0` for both identities. Versions ≤0.0.47 shipped a stub flux
 >    driver that reported `state: connected` regardless, which masked this for six
 >    weeks. Fixed by `cb6adfe feat(flux): enroll the one-time JWT into a real
@@ -63,7 +63,7 @@
 >
 > **Open consequence:** the `100.65.0.x` synthetic IPs that Ignition Edge uses to
 > reach ignition-cloud (`100.65.0.1:8060`) were provided by the deleted
-> `flux-edge-tunnel` DaemonSet. Nothing provides them today — all three dial checks
+> `flux-edge-tunnel` DaemonSet. Nothing provides them today: all three dial checks
 > fail. Either the endpoint gains a tunneler, or the Ignition leg needs a tunnel
 > sidecar/DaemonSet restored. This is the remaining blocker to the tag path below.
 
@@ -88,7 +88,7 @@ EmberNET Dashboard (tag display, alarms, trends)
 |---|---|---|
 | Underlay | Azure VNet / Public IP | SSH:22 (admin), UDP/443 (WG mgmt) |
 | VPN | WireGuard via embernet-endpoint daemon | `embernet0` iface, 100.64.2.0/24 (Fragua) |
-| Mesh | Flux/Ziti API session via embernet-endpoint daemon — **control plane only, no traffic intercept** | `vpn.embernet.ai:443`, `flux.embernet.ai:443`, `cdn.embernet.ai:443` |
+| Mesh | Flux/Ziti API session via embernet-endpoint daemon, **control plane only, no traffic intercept** | `vpn.embernet.ai:443`, `flux.embernet.ai:443`, `cdn.embernet.ai:443` |
 | K8s | K3s / Flannel (`flannel-iface: embernet0`) | 6443, 10250 |
 | App | CODESYS + Ignition Edge | OPC-UA:4840, HTTP:8088 |
 
