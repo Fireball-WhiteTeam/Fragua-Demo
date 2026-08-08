@@ -27,20 +27,31 @@ ZITI_URL = os.environ["ZITI_CONTROLLER_URL"].rstrip("/")
 ADMIN_U = os.environ["ZITI_ADMIN_USER"]
 ADMIN_P = os.environ["ZITI_ADMIN_PASSWORD"]
 
+# Bind stays 1:1 per edge — an edge must host ONLY its own Designer, so unlike
+# the dial side this cannot become a shared role. But the identity is named,
+# not pinned by id, and resolved against the controller at runtime.
+#
+# It used to carry "bind_ident_ref": "@199XSfc7B1" / "@XSuRSfc2B1". Checked
+# against the live controller 2026-08-08, NEITHER ID EXISTS ANY MORE, while the
+# live policies correctly bind @8wIhMwE9I (fragua-edge-01) and @9cO634E9T
+# (fragua-edge-02). Since ensure_service_policy() PATCHes an existing policy,
+# re-running this script would have repointed both designer binds at
+# nonexistent identities — no node could host its Designer, and nothing would
+# have said so. A pinned id does not survive a re-enrollment; a name does.
 EDGES = [
     {
         "name": "fragua-edge-01-designer",
         "intercept": "100.65.0.10",
         "port": 8088,
         "terminator_host": "localhost",
-        "bind_ident_ref": "@199XSfc7B1",  # Fragua-Embernode-0001
+        "bind_identity_name": "fragua-edge-01",
     },
     {
         "name": "fragua-edge-02-designer",
         "intercept": "100.65.0.11",
         "port": 8088,
         "terminator_host": "localhost",
-        "bind_ident_ref": "@XSuRSfc2B1",  # Fragua-Embernode-0002
+        "bind_identity_name": "fragua-edge-02",
     },
 ]
 
@@ -64,6 +75,25 @@ def find_by_name(coll, name):
     r.raise_for_status()
     data = r.json().get("data", [])
     return data[0] if data else None
+
+
+def identity_ref(identity_name):
+    """Resolve an identity NAME to the '@<id>' form a policy references.
+
+    Fails loudly and stops. The alternative — carrying on with a name the
+    controller does not know — writes a Bind policy that selects nobody, which
+    looks identical to a working one until somebody tries to open Designer.
+    Never guess-bind: a wrong identity here means one edge can host another's
+    Designer.
+    """
+    ident = find_by_name("identities", identity_name)
+    if not ident:
+        sys.exit(
+            f"FATAL: no Ziti identity named {identity_name!r}. Refusing to write a "
+            f"Bind policy that would select nobody. Check the identity name (it is "
+            f"the device name used at provisioning) and re-run."
+        )
+    return f"@{ident['id']}"
 
 
 def get_config_type_id(name):
@@ -167,7 +197,7 @@ def main():
         ensure_service_policy(
             f"{name}-bind",
             "Bind",
-            [edge["bind_ident_ref"]],
+            [identity_ref(edge["bind_identity_name"])],
             [f"#{name}"],
         )
         service_role_refs.append(f"#{name}")

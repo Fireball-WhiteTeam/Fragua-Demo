@@ -27,7 +27,28 @@ BIND_POLICY_NAME = f"{SERVICE_NAME}-bind"
 DIAL_POLICY_NAME = f"fragua-{SERVICE_NAME}-dial"
 TERMINATOR_HOST = "anvilmq.fireball-system.svc.cluster.local"
 BIND_IDENT_ROLES = ["#embernet-control-plane"]
-DIAL_IDENT_REFS = ["@199XSfc7B1", "@XSuRSfc2B1"]  # Fragua-Embernode-0001/-0002 ids
+# Dial is granted by ROLE, never by identity id.
+#
+# This used to be DIAL_IDENT_REFS = ["@199XSfc7B1", "@XSuRSfc2B1"], the ids of
+# two edges enrolled in May 2026. Three things were wrong with that, and all
+# three had already bitten by 2026-08-08:
+#
+#   1. A third node gets nothing. embernode-fragua-0002 joined Fragua Ready,
+#      reported ONLINE, and could not dial the broker, because its id was not
+#      in this list and nothing said so.
+#   2. ensure_service_policy() PATCHes an existing policy. The live
+#      fragua-anvilmq-mqtt-dial had since been corrected to
+#      identityRoles ['#fragua-edge-dial'], so re-running this script would
+#      have silently REVERTED it and cut off every node not in the list.
+#   3. Both ids are now dangling — no identity with either id exists on the
+#      controller. Pinning to an id survives neither a re-enrollment nor a
+#      rebuild, and the failure is silent because a policy that selects nobody
+#      is indistinguishable from one nobody has tripped yet.
+#
+# `#fragua-edge-dial` is the role the provisioner assigns from
+# TENANT_ROLE_ATTRIBUTES_JSON and the-reconciler keeps repaired, so membership
+# is automatic for every current and future Fragua node.
+DIAL_IDENT_REFS = ["#fragua-edge-dial"]
 
 c = httpx.Client(verify=False, timeout=15)
 
