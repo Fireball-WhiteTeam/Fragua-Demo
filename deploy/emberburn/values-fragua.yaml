@@ -100,31 +100,16 @@ config:
     graphql:
       enabled: false
 
-    # ── Derived electrical points ────────────────────────────────────────
-    # `dependencies` is a mapping because a UNS path is not a Python
-    # identifier — `Power/Switchboard_01/CurrentA` would evaluate as division.
+    # Derived points (real power, rolling demand, the HMI's kW/kVA/kVAr/kWh)
+    # are NOT listed here. A computed tag is a tag: its expression rides in the
+    # tag definition and arrives with the rest through the tag API. This block
+    # only turns the engine on.
     data_transformation:
       enabled: true
       enable_computed: true
       enable_conversions: false
       transformations: []
-      computed_tags:
-        - target_tag: "Power/Switchboard_01/TotalRealPower"
-          description: "Three-phase real power from measured V, I and PF"
-          expression: "round(sqrt(3) * v * ((ia + ib + ic) / 3) * pf / 1000, 2)"
-          dependencies:
-            v: "Power/Switchboard_01/VoltageAB"
-            ia: "Power/Switchboard_01/CurrentA"
-            ib: "Power/Switchboard_01/CurrentB"
-            ic: "Power/Switchboard_01/CurrentC"
-            pf: "Power/Switchboard_01/TotalPowerFactor"
-
-        - target_tag: "Power/Switchboard_01/Demand15Min"
-          description: "Rolling 15-minute average demand"
-          expression: "round(kw, 2)"
-          window_seconds: 900
-          dependencies:
-            kw: "Power/Switchboard_01/TotalRealPower"
+      computed_tags: []
 
     # ── Alarms ───────────────────────────────────────────────────────────
     # `delay_seconds` is the on-delay from the site's alarm schedule: the

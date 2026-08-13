@@ -1,0 +1,718 @@
+{
+  "_comment": [
+    "Fragua HMI tag list — the PLC_PRG points the FRAGUAV3 Perspective views",
+    "bind to ([default]PLC_PRG/*). This is what makes the existing HMI panel",
+    "— low / med / HVAC / Luces / Charts / Alarms — light up without editing",
+    "a single view.",
+    "",
+    "Companion to fragua-tags.json, which carries the 25-point site schedule",
+    "that feeds the EmberNet dashboard. Both sets run in the same EmberBurn",
+    "instance; this one is additionally exposed over OPC-UA on :4840 for",
+    "Ignition Edge to import into its [default] provider.",
+    "",
+    "Data, not configuration: pushed in with seed-tags.py and persisted by",
+    "EmberBurn to its own volume. Nothing here is in a chart or an image.",
+    "",
+    "The model is a plant, not noise: compressors and HVAC units run under",
+    "hysteresis control off their own space temperature, so the rooms hold",
+    "setpoint and the run status agrees with the temperature; control output",
+    "modulates with deviation and is zero when the unit is stopped; each",
+    "load's kW derives from what that load is doing; KW is the sum of them",
+    "plus base load; KVA and KVAR come off the power triangle; and KWH and",
+    "KVARH integrate their own source rather than ticking at a fixed rate."
+  ],
+  "tags": [
+    {
+      "name": "PLC_PRG/Baja_SP",
+      "description": "Camara Baja - Setpoint de temperatura",
+      "type": "float",
+      "units": "°C",
+      "initial_value": -20.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Baja_AlarmSP",
+      "description": "Camara Baja - Setpoint de alarma alta",
+      "type": "float",
+      "units": "°C",
+      "initial_value": -12.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Baja_Temp",
+      "description": "Camara Baja - Temperatura",
+      "type": "float",
+      "units": "°C",
+      "initial_value": -20.0,
+      "simulate": true,
+      "simulation_type": "thermostat",
+      "setpoint_tag": "PLC_PRG/Baja_SP",
+      "driver_tag": "PLC_PRG/Baja_On",
+      "band": 2.0,
+      "pull_rate": 0.35,
+      "rise_rate": 0.22,
+      "ambient": 8.0,
+      "noise": 0.05
+    },
+    {
+      "name": "PLC_PRG/Baja_On",
+      "description": "Camara Baja - Compresor en marcha",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "hysteresis",
+      "process_tag": "PLC_PRG/Baja_Temp",
+      "setpoint_tag": "PLC_PRG/Baja_SP",
+      "differential": 1.5,
+      "min_on_seconds": 180,
+      "min_off_seconds": 180
+    },
+    {
+      "name": "PLC_PRG/Baja_Alarm",
+      "description": "Camara Baja - Alarma de temperatura alta",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "t > sp",
+      "dependencies": {
+        "t": "PLC_PRG/Baja_Temp",
+        "sp": "PLC_PRG/Baja_AlarmSP"
+      }
+    },
+    {
+      "name": "PLC_PRG/Alta_SP",
+      "description": "Camara Alta - Setpoint de temperatura",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 2.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Alta_AlarmSP",
+      "description": "Camara Alta - Setpoint de alarma alta",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 10.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Alta_Temp",
+      "description": "Camara Alta - Temperatura",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 2.0,
+      "simulate": true,
+      "simulation_type": "thermostat",
+      "setpoint_tag": "PLC_PRG/Alta_SP",
+      "driver_tag": "PLC_PRG/Alta_On",
+      "band": 1.5,
+      "pull_rate": 0.4,
+      "rise_rate": 0.28,
+      "ambient": 22.0,
+      "noise": 0.04
+    },
+    {
+      "name": "PLC_PRG/Alta_On",
+      "description": "Camara Alta - Compresor en marcha",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "hysteresis",
+      "process_tag": "PLC_PRG/Alta_Temp",
+      "setpoint_tag": "PLC_PRG/Alta_SP",
+      "differential": 1.2,
+      "min_on_seconds": 150,
+      "min_off_seconds": 150
+    },
+    {
+      "name": "PLC_PRG/HVAC1_SP",
+      "description": "HVAC 1 - Setpoint",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 22.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/HVAC1_Hist",
+      "description": "HVAC 1 - Histeresis",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 1.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/HVAC1_Temp",
+      "description": "HVAC 1 - Temperatura de espacio",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 22.0,
+      "simulate": true,
+      "simulation_type": "thermostat",
+      "setpoint_tag": "PLC_PRG/HVAC1_SP",
+      "driver_tag": "PLC_PRG/HVAC1_On",
+      "band": 1.0,
+      "pull_rate": 0.25,
+      "rise_rate": 0.18,
+      "ambient": 31.0,
+      "noise": 0.05
+    },
+    {
+      "name": "PLC_PRG/HVAC1_On",
+      "description": "HVAC 1 - Unidad en marcha",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "hysteresis",
+      "process_tag": "PLC_PRG/HVAC1_Temp",
+      "setpoint_tag": "PLC_PRG/HVAC1_SP",
+      "differential": 1.0,
+      "min_on_seconds": 300,
+      "min_off_seconds": 300
+    },
+    {
+      "name": "PLC_PRG/HVAC1_Out",
+      "description": "HVAC 1 - Salida de control",
+      "type": "float",
+      "units": "%",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(max(0.0, min(100.0, 55.0 + 18.0 * (t - sp))), 1) if on else 0.0",
+      "dependencies": {
+        "t": "PLC_PRG/HVAC1_Temp",
+        "sp": "PLC_PRG/HVAC1_SP",
+        "on": "PLC_PRG/HVAC1_On"
+      }
+    },
+    {
+      "name": "PLC_PRG/KW_HVAC1",
+      "description": "HVAC 1 - Potencia",
+      "type": "float",
+      "units": "kW",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(out * 0.11, 2)",
+      "dependencies": {
+        "out": "PLC_PRG/HVAC1_Out"
+      }
+    },
+    {
+      "name": "PLC_PRG/HVAC2_SP",
+      "description": "HVAC 2 - Setpoint",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 23.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/HVAC2_Hist",
+      "description": "HVAC 2 - Histeresis",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 1.0,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/HVAC2_Temp",
+      "description": "HVAC 2 - Temperatura de espacio",
+      "type": "float",
+      "units": "°C",
+      "initial_value": 23.0,
+      "simulate": true,
+      "simulation_type": "thermostat",
+      "setpoint_tag": "PLC_PRG/HVAC2_SP",
+      "driver_tag": "PLC_PRG/HVAC2_On",
+      "band": 1.0,
+      "pull_rate": 0.25,
+      "rise_rate": 0.18,
+      "ambient": 31.0,
+      "noise": 0.05
+    },
+    {
+      "name": "PLC_PRG/HVAC2_On",
+      "description": "HVAC 2 - Unidad en marcha",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "hysteresis",
+      "process_tag": "PLC_PRG/HVAC2_Temp",
+      "setpoint_tag": "PLC_PRG/HVAC2_SP",
+      "differential": 1.0,
+      "min_on_seconds": 300,
+      "min_off_seconds": 300
+    },
+    {
+      "name": "PLC_PRG/HVAC2_Out",
+      "description": "HVAC 2 - Salida de control",
+      "type": "float",
+      "units": "%",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(max(0.0, min(100.0, 55.0 + 18.0 * (t - sp))), 1) if on else 0.0",
+      "dependencies": {
+        "t": "PLC_PRG/HVAC2_Temp",
+        "sp": "PLC_PRG/HVAC2_SP",
+        "on": "PLC_PRG/HVAC2_On"
+      }
+    },
+    {
+      "name": "PLC_PRG/KW_HVAC2",
+      "description": "HVAC 2 - Potencia",
+      "type": "float",
+      "units": "kW",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(out * 0.11, 2)",
+      "dependencies": {
+        "out": "PLC_PRG/HVAC2_Out"
+      }
+    },
+    {
+      "name": "PLC_PRG/Noche",
+      "description": "Modo nocturno",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 3600,
+      "off_seconds": 9000,
+      "jitter_pct": 10
+    },
+    {
+      "name": "PLC_PRG/Luz1",
+      "description": "Luz zona 1 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 2040,
+      "off_seconds": 690,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz1_En",
+      "description": "Luz zona 1 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_1",
+      "description": "Luz zona 1 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Luz2",
+      "description": "Luz zona 2 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 2280,
+      "off_seconds": 780,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz2_En",
+      "description": "Luz zona 2 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_2",
+      "description": "Luz zona 2 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Luz3",
+      "description": "Luz zona 3 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 2520,
+      "off_seconds": 870,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz3_En",
+      "description": "Luz zona 3 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_3",
+      "description": "Luz zona 3 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Luz4",
+      "description": "Luz zona 4 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 2760,
+      "off_seconds": 960,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz4_En",
+      "description": "Luz zona 4 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_4",
+      "description": "Luz zona 4 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Luz5",
+      "description": "Luz zona 5 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 3000,
+      "off_seconds": 1050,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz5_En",
+      "description": "Luz zona 5 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_5",
+      "description": "Luz zona 5 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Luz6",
+      "description": "Luz zona 6 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 3240,
+      "off_seconds": 1140,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz6_En",
+      "description": "Luz zona 6 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_6",
+      "description": "Luz zona 6 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Luz7",
+      "description": "Luz zona 7 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 3480,
+      "off_seconds": 1230,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz7_En",
+      "description": "Luz zona 7 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_7",
+      "description": "Luz zona 7 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Luz8",
+      "description": "Luz zona 8 - Estado",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 3720,
+      "off_seconds": 1320,
+      "jitter_pct": 20
+    },
+    {
+      "name": "PLC_PRG/Luz8_En",
+      "description": "Luz zona 8 - Habilitada",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/Override_luz_8",
+      "description": "Luz zona 8 - Override manual",
+      "type": "bool",
+      "initial_value": false,
+      "simulate": false
+    },
+    {
+      "name": "PLC_PRG/KW_Luces",
+      "description": "Iluminacion - Potencia total",
+      "type": "float",
+      "units": "kW",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round((l1 + l2 + l3 + l4 + l5 + l6 + l7 + l8) * 1.4, 2)",
+      "dependencies": {
+        "l1": "PLC_PRG/Luz1",
+        "l2": "PLC_PRG/Luz2",
+        "l3": "PLC_PRG/Luz3",
+        "l4": "PLC_PRG/Luz4",
+        "l5": "PLC_PRG/Luz5",
+        "l6": "PLC_PRG/Luz6",
+        "l7": "PLC_PRG/Luz7",
+        "l8": "PLC_PRG/Luz8"
+      }
+    },
+    {
+      "name": "PLC_PRG/VFD_On",
+      "description": "Variador - En marcha",
+      "type": "bool",
+      "initial_value": true,
+      "simulate": true,
+      "simulation_type": "duty_cycle",
+      "on_seconds": 5400,
+      "off_seconds": 900,
+      "jitter_pct": 15
+    },
+    {
+      "name": "PLC_PRG/VFD_Hz",
+      "description": "Variador - Frecuencia",
+      "type": "float",
+      "units": "Hz",
+      "initial_value": 48.0,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.5,
+      "min": 35.0,
+      "max": 60.0
+    },
+    {
+      "name": "PLC_PRG/KW_VFD",
+      "description": "Variador - Potencia",
+      "type": "float",
+      "units": "kW",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(hz * 0.35, 2) if on else 0.0",
+      "dependencies": {
+        "hz": "PLC_PRG/VFD_Hz",
+        "on": "PLC_PRG/VFD_On"
+      }
+    },
+    {
+      "name": "PLC_PRG/VL1N",
+      "description": "Medidor principal - Tension fase-neutro VL1N",
+      "type": "float",
+      "units": "V",
+      "initial_value": 127.0,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.4,
+      "min": 123.0,
+      "max": 131.0
+    },
+    {
+      "name": "PLC_PRG/VL2N",
+      "description": "Medidor principal - Tension fase-neutro VL2N",
+      "type": "float",
+      "units": "V",
+      "initial_value": 127.0,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.4,
+      "min": 123.0,
+      "max": 131.0
+    },
+    {
+      "name": "PLC_PRG/VL3N",
+      "description": "Medidor principal - Tension fase-neutro VL3N",
+      "type": "float",
+      "units": "V",
+      "initial_value": 127.0,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.4,
+      "min": 123.0,
+      "max": 131.0
+    },
+    {
+      "name": "PLC_PRG/VL1L2",
+      "description": "Medidor principal - Tension entre fases VL1L2",
+      "type": "float",
+      "units": "V",
+      "initial_value": 220.0,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.4,
+      "min": 214.0,
+      "max": 226.0
+    },
+    {
+      "name": "PLC_PRG/VL2L3",
+      "description": "Medidor principal - Tension entre fases VL2L3",
+      "type": "float",
+      "units": "V",
+      "initial_value": 220.0,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.4,
+      "min": 214.0,
+      "max": 226.0
+    },
+    {
+      "name": "PLC_PRG/VL3L1",
+      "description": "Medidor principal - Tension entre fases VL3L1",
+      "type": "float",
+      "units": "V",
+      "initial_value": 220.0,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.4,
+      "min": 214.0,
+      "max": 226.0
+    },
+    {
+      "name": "PLC_PRG/FP",
+      "description": "Medidor principal - Factor de potencia",
+      "type": "float",
+      "units": "",
+      "initial_value": 0.95,
+      "simulate": true,
+      "simulation_type": "walk",
+      "step": 0.006,
+      "min": 0.88,
+      "max": 0.99
+    },
+    {
+      "name": "PLC_PRG/KW",
+      "description": "Medidor principal - Potencia activa total",
+      "type": "float",
+      "units": "kW",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(h1 + h2 + luces + vfd + 12.0, 2)",
+      "dependencies": {
+        "h1": "PLC_PRG/KW_HVAC1",
+        "h2": "PLC_PRG/KW_HVAC2",
+        "luces": "PLC_PRG/KW_Luces",
+        "vfd": "PLC_PRG/KW_VFD"
+      }
+    },
+    {
+      "name": "PLC_PRG/KVA",
+      "description": "Medidor principal - Potencia aparente",
+      "type": "float",
+      "units": "kVA",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(kw / fp, 2) if fp > 0.1 else 0.0",
+      "dependencies": {
+        "kw": "PLC_PRG/KW",
+        "fp": "PLC_PRG/FP"
+      }
+    },
+    {
+      "name": "PLC_PRG/KVAR",
+      "description": "Medidor principal - Potencia reactiva",
+      "type": "float",
+      "units": "kVAR",
+      "initial_value": 0.0,
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(sqrt(max(kva * kva - kw * kw, 0.0)), 2)",
+      "dependencies": {
+        "kva": "PLC_PRG/KVA",
+        "kw": "PLC_PRG/KW"
+      }
+    },
+    {
+      "name": "PLC_PRG/KWH",
+      "description": "Medidor principal - Energia activa acumulada",
+      "type": "float",
+      "units": "kWh",
+      "initial_value": 0.0,
+      "simulate": true,
+      "simulation_type": "accumulate",
+      "source_tag": "PLC_PRG/KW"
+    },
+    {
+      "name": "PLC_PRG/KVARH",
+      "description": "Medidor principal - Energia reactiva acumulada",
+      "type": "float",
+      "units": "kVARh",
+      "initial_value": 0.0,
+      "simulate": true,
+      "simulation_type": "accumulate",
+      "source_tag": "PLC_PRG/KVAR"
+    },
+    {
+      "name": "PLC_PRG/Hora_H",
+      "description": "Reloj de planta - Hora",
+      "type": "int",
+      "initial_value": 0,
+      "simulate": true,
+      "simulation_type": "clock",
+      "part": "hour"
+    },
+    {
+      "name": "PLC_PRG/Hora_M",
+      "description": "Reloj de planta - Minuto",
+      "type": "int",
+      "initial_value": 0,
+      "simulate": true,
+      "simulation_type": "clock",
+      "part": "minute"
+    },
+    {
+      "name": "PLC_PRG/Hora_S",
+      "description": "Reloj de planta - Segundo",
+      "type": "int",
+      "initial_value": 0,
+      "simulate": true,
+      "simulation_type": "clock",
+      "part": "second"
+    }
+  ]
+}

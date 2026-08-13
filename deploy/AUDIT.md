@@ -3,6 +3,17 @@
 _Generated 2026-05-19, picking up where the antigravity agent stopped._
 _Phase 7b end-to-end dial path resolved 2026-05-21._
 
+> **2026-07-22 update — edge-02 recovered; both edges Ready.** edge-02 was still the
+> undersized `Standard_B2s` (4 GB burstable) + P4 disk this doc originally flagged, and
+> had wedged so hard its Azure guest agent went unresponsive (RAM/CPU-credit starvation;
+> the disk was only 16% full). Fixed with the same remediation applied to edge-01:
+> deallocate → OS disk 30 GB→**128 GiB (P10)** → VM **B2s→`Standard_D2as_v4`** (8 GB
+> sustained) → start. It rejoined k3s as **Ready**. Both nodes now run **only the
+> `embernet` endpoint in Podman + k3s**; CODESYS and **Ignition Edge (on BOTH edges)**
+> run as App Store k3s pods, all `1/1 Running`. The WireGuard topology below is also
+> superseded — Fragua moved to `100.64.2.0/24` via the embernet-endpoint container; see
+> `.agent/CREDENTIALS.md` and `.agent/workflows/architecture-reference.md`.
+
 ## Resume point: chart-alignment follow-up + edge-02 cluster recovery
 
 Platform deploy is functionally complete. Rancher reports `Fragua` cluster as
@@ -170,9 +181,9 @@ Backport to cp02 to fix the same silent failure there.
 | 2 | NTP active, hostnames set | ✅ |
 | 2 | WireGuard configured on both edges + hub | ✅ |
 | 2 | WG handshake edge-01↔hub OK | ✅ |
-| 2 | WG handshake edge-02↔hub | 🚧 dead since 2026-05-19; hub-side issue, defer to engineer |
+| 2 | WG handshake edge-02↔hub | ✅ superseded — edge-02 now on `100.64.2.1` via embernet-endpoint container (not the old hub path) |
 | 3 | K3s server on edge-01 (v1.35.4+k3s1) | ✅ |
-| 3 | K3s agent on edge-02 joined | 🚧 not Ready (depends on edge-02 WG) |
+| 3 | K3s agent on edge-02 joined | ✅ Ready (2026-07-22, after VM resize to D2as_v4 + 128 GiB disk) |
 | 3 | Snapshotter: `overlayfs` (NOT `overlay`) | ✅ |
 | 3 | Node labels (`embernet.ai/site=fragua`, etc.) | ✅ |
 | 3 | `service-node-port-range=443-32767` set on apiserver | ✅ |
@@ -182,7 +193,7 @@ Backport to cp02 to fix the same silent failure there.
 | 4 | Longhorn 1.7.2, default StorageClass, PVC smoke test bound | ✅ |
 | 4 | ghcr-secret replicated from embernet001 → 4 namespaces | ✅ |
 | 5 | flux-edge-tunnel v2.0.8 on fragua-edge-01 (enrolled, /netfoundry has identity.json) | ✅ |
-| 5 | flux-edge-tunnel v2.0.8 on fragua-edge-02 (DS exists, 0 replicas while node NotReady) | 🚧 follows edge-02 K3s recovery |
+| 5 | flux-edge-tunnel on fragua-edge-02 | ✅ superseded — replaced by per-edge embernet-endpoint container (2026-06-04 cutover); DaemonSet retired |
 | 6 | CODESYS Linux SL v4.20.0.0 (Podman, demo mode) on both edges | ✅ |
 | 6 | FraguaV2.project + Application.xml staged in `/opt/embernet/codesys/data/project/` | ✅ |
 | 7 | Ignition Edge 8.3.6 (Podman, mirror cp02 install_ignition_edge) on both edges | ✅ |
@@ -202,8 +213,8 @@ Backport to cp02 to fix the same silent failure there.
 
 | Name | Azure public | WG IP | OS | SSH |
 |---|---|---|---|---|
-| fragua-edge-01 | 20.80.241.221 (eastus2-z1) | 100.64.0.30/24 | Ubuntu 24.04.4 LTS | emberadmin@pw + fireball@key |
-| fragua-edge-02 | 52.176.39.25 (centralus) | 100.64.0.31/24 | Ubuntu 24.04.4 LTS | emberadmin@pw + fireball@key |
+| fragua-edge-01 | 20.80.241.221 (eastus2-z1) | 100.64.2.2/24 | Ubuntu 24.04.4 LTS · D2as_v4 / 128 GiB P10 | emberadmin@pw + fireball@key |
+| fragua-edge-02 | 52.176.39.25 (centralus, static) | 100.64.2.1/24 | Ubuntu 24.04.4 LTS · **D2as_v4 / 128 GiB P10** (resized 2026-07-22) | emberadmin@pw + fireball@key |
 | embernet003 (hub) | 20.186.57.136 / 192.168.196.3 (ZT) | 100.64.0.1 | — | emberadmin@pw |
 | embernet005 (relay node, AWS) | LB-fronted at `cdn.embernet.ai`/`flux.embernet.ai` = 20.10.93.244 | 100.64.0.11 (K3s flannel) | Ubuntu | n/a — cluster-managed |
 
@@ -252,7 +263,8 @@ fireball admin (key auth) still works as the original provisioning user.
 
 | Item | Owner | Notes |
 |---|---|---|
-| edge-02 WG recovery + K3s rejoin | TBD | Hub-side handshake never completes; needs hub-side debugging |
+| ~~edge-02 WG recovery + K3s rejoin~~ | ✅ DONE 2026-07-22 | Root cause was VM undersizing (B2s), not WG. Resized to D2as_v4 + 128 GiB; rejoined k3s Ready. |
+| Longhorn 2-node config | platform | `default-replica-count=3` on a 2-node cluster @ 100% over-provisioning — no schedulable budget for new 50Gi PVCs (edge-02 Ignition deployed with `backup.enabled=false` to dodge it). Set replica-count=2 and/or raise over-provisioning. |
 | Ignition Edge helm chart (`embernet-ai/Ignition-Edge-Pod`) — add `provisioner.enabled` self-enroll pattern | this repo branch (pending PR) | Mirror the pattern from `deploy/charts/embernet-probe-1.2.1/templates/deployment.yaml` lines 49-128 |
 | CODESYS helm chart (`embernet-ai/Codesys-AMD-64-x86`) — align with lessons learned | this repo branch (pending PR) | The Podman install learned `find -name '*.deb'` + equivs codemeter-lite shim — see `deploy/codesys/install-codesys.sh` |
 | Provisioner upstream PR | `embernet-ai/embernet-provisioner` | 5 fixes in 2 files; local fork at `.agent/repos/embernet-provisioner/` |

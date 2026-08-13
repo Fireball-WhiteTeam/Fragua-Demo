@@ -11,12 +11,18 @@
     "change a tag, edit this file and re-run the seeder, or edit it live in the",
     "EmberBurn web UI at :5000 — no chart edit, no release, no redeploy.",
     "",
+    "Derived points (TotalRealPower, Demand15Min) use the `computed` model:",
+    "their expression rides in the tag definition, so they are created and",
+    "persisted through the same API as everything else rather than living in",
+    "chart values. `dependencies` is a mapping because a UNS path is not a",
+    "Python identifier — Power/Switchboard_01/CurrentA is three divisions to",
+    "eval(), not a variable.",
+    "",
     "Naming is the UNS path: Area/Asset/Point. AnvilMQ's SparkplugB decoder",
     "appends the Sparkplug metric name to its destination topic, so these names",
     "become the tag tree in the EmberNet dashboard. Rename a tag here and you",
     "move it in the dashboard."
   ],
-
   "tags": [
     {
       "name": "Refrigeration/ColdRoom_LT_01/AirTemperature",
@@ -85,7 +91,6 @@
       "overrun_probability": 0.1,
       "overrun_multiplier": 6.0
     },
-
     {
       "name": "Refrigeration/ColdRoom_MT_01/AirTemperature",
       "description": "Medium-Temperature Cold Room 01 - Air Temperature",
@@ -127,7 +132,6 @@
       "min_on_seconds": 150,
       "min_off_seconds": 150
     },
-
     {
       "name": "HVAC/Space_01/RoomAirTemperature",
       "description": "Occupied Space 01 - Room Air Temperature",
@@ -152,7 +156,6 @@
       "min": 42.0,
       "max": 58.0
     },
-
     {
       "name": "Lighting/Zone_01/OnOffCommand",
       "description": "Lighting Zone 01 - On/Off Command",
@@ -176,7 +179,6 @@
       "mismatch_probability": 0.12,
       "mismatch_seconds": 45.0
     },
-
     {
       "name": "HVAC/AHU_01/SupplyFanRun",
       "description": "Air Handling Unit 01 - Supply Fan Running Status",
@@ -225,7 +227,6 @@
       "max": 265.0,
       "reset_on_max": true
     },
-
     {
       "name": "Power/Switchboard_01/VoltageAB",
       "description": "Main Switchboard Meter 01 - Line-to-Line Voltage A-B",
@@ -282,7 +283,16 @@
       "initial_value": 45.0,
       "min": 0.0,
       "max": 150.0,
-      "simulate": false
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(sqrt(3) * v * ((ia + ib + ic) / 3) * pf / 1000, 2)",
+      "dependencies": {
+        "v": "Power/Switchboard_01/VoltageAB",
+        "ia": "Power/Switchboard_01/CurrentA",
+        "ib": "Power/Switchboard_01/CurrentB",
+        "ic": "Power/Switchboard_01/CurrentC",
+        "pf": "Power/Switchboard_01/TotalPowerFactor"
+      }
     },
     {
       "name": "Power/Switchboard_01/TotalPowerFactor",
@@ -304,9 +314,14 @@
       "initial_value": 45.0,
       "min": 0.0,
       "max": 150.0,
-      "simulate": false
+      "simulate": false,
+      "simulation_type": "computed",
+      "expression": "round(kw, 2)",
+      "window_seconds": 900,
+      "dependencies": {
+        "kw": "Power/Switchboard_01/TotalRealPower"
+      }
     },
-
     {
       "name": "Power/Generator_01/EngineRun",
       "description": "Standby Generator 01 - Engine Running Status",
