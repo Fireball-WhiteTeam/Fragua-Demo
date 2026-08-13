@@ -1,0 +1,332 @@
+# EmberBurn values for the Fragua demo site — Corporativo Fragua, Guadalajara.
+#
+# The 25 points below are the site's tag list: two cold rooms, an occupied
+# space, a lighting zone, an air handling unit, a main switchboard meter and a
+# standby generator. Retail/DC refrigeration and building services, not a
+# factory.
+#
+#   helm upgrade --install emberburn-fragua-edge-01 embernet/emberburn \
+#     --namespace default --values values-fragua.yaml
+#
+# ── Three things here are load-bearing, and all three fail silently ──────────
+#
+# 1. `group_id: fragua` MUST equal the tenant slug. AnvilMQ confines each
+#    credential to `spBv1.0/<tenant>/#` by ACL, and a publish outside that
+#    prefix is refused by the broker rather than raised to the client — the pod
+#    looks healthy and sends nothing. The slug is `fragua` (tenant CR
+#    `tenant-fragua/fragua`), NOT `fragua-demo`.
+#
+# 2. `network.hostNetwork: true` is required, not a preference. AnvilMQ is
+#    reached over the Flux overlay at the synthetic IP 100.65.0.2, and that
+#    overlay is host-scoped: measured on fragua-edge-01, the host dials
+#    100.65.0.2:1883 fine and a normal pod cannot reach it at all.
+#
+# 3. Metric names carry the UNS path. AnvilMQ's SparkplugB decoder appends the
+#    metric name to its destination topic, so `Refrigeration/ColdRoom_LT_01/
+#    AirTemperature` becomes a real branch in the dashboard's tag tree. Rename
+#    a tag here and you move it in the dashboard.
+
+emberburn:
+  image:
+    tag: "4.1.15"          # 4.1.14 and earlier ignore this file entirely
+  opcua:
+    updateInterval: 2
+    logLevel: "INFO"
+
+# Pin to the control-plane node. embernode-fragua-0002 joined this cluster
+# Ready but is not in the Flux dial policy, so a pod scheduled there cannot
+# reach the broker — and nothing says so.
+nodeSelector:
+  kubernetes.io/hostname: fragua-edge-01
+
+network:
+  hostNetwork: true        # see note 2 above
+
+embernet:
+  displayName: "Fragua Site Simulator"
+
+# Tags are authored through the API, and EmberBurn refuses anonymous writes:
+# with no configured key it generates an ephemeral per-pod token, which the web
+# UI receives but no external caller can know. seed-tags.py therefore needs a
+# real key, held in a Secret rather than in git:
+#
+#   kubectl -n default create secret generic emberburn-fragua-api \
+#     --from-literal=apiKey="$(openssl rand -base64 32)"
+#
+# Read it back when running the seeder:
+#
+#   KEY=$(kubectl -n default get secret emberburn-fragua-api \
+#           -o jsonpath='{.data.apiKey}' | base64 -d)
+#   python seed-tags.py --url http://127.0.0.1:5000 --api-key "$KEY"
+security:
+  existingSecret: "emberburn-fragua-api"
+  uiWrites: true
+
+tenantLabels:
+  embernet.ai/tenant: fragua
+
+config:
+  publishers:
+    sparkplug_b:
+      enabled: true
+      broker: "100.65.0.2"           # Flux synthetic IP for anvilmq-mqtt
+      port: 1883
+      group_id: "fragua"             # see note 1 above
+      edge_node_id: "fragua-edge-01"
+      device_id: "fragua-hq-guadalajara"
+      existingSecret: "anvilmq-fragua"
+      usernameKey: "mqtt-username"
+      passwordKey: "mqtt-password"
+
+    rest_api:
+      enabled: true
+      host: "0.0.0.0"
+      port: 5000
+
+    prometheus:
+      enabled: true
+      port: 8000
+      path: "/metrics"
+
+    sqlite_persistence:
+      enabled: true
+      db_file: "/app/data/emberburn.db"
+      log_interval: 60
+
+    mqtt:
+      enabled: false                 # Sparkplug is the path; plain MQTT would double-publish
+    influxdb:
+      enabled: false                 # Ignition Cloud owns the historian write
+    graphql:
+      enabled: false
+
+    # ── Derived electrical points ────────────────────────────────────────
+    # `dependencies` is a mapping because a UNS path is not a Python
+    # identifier — `Power/Switchboard_01/CurrentA` would evaluate as division.
+    data_transformation:
+      enabled: true
+      enable_computed: true
+      enable_conversions: false
+      transformations: []
+      computed_tags:
+        - target_tag: "Power/Switchboard_01/TotalRealPower"
+          description: "Three-phase real power from measured V, I and PF"
+          expression: "round(sqrt(3) * v * ((ia + ib + ic) / 3) * pf / 1000, 2)"
+          dependencies:
+            v: "Power/Switchboard_01/VoltageAB"
+            ia: "Power/Switchboard_01/CurrentA"
+            ib: "Power/Switchboard_01/CurrentB"
+            ic: "Power/Switchboard_01/CurrentC"
+            pf: "Power/Switchboard_01/TotalPowerFactor"
+
+        - target_tag: "Power/Switchboard_01/Demand15Min"
+          description: "Rolling 15-minute average demand"
+          expression: "round(kw, 2)"
+          window_seconds: 900
+          dependencies:
+            kw: "Power/Switchboard_01/TotalRealPower"
+
+    # ── Alarms ───────────────────────────────────────────────────────────
+    # `delay_seconds` is the on-delay from the site's alarm schedule: the
+    # condition must hold that long before the alarm raises. Without it a cold
+    # room ticking past its limit for one scan during a defrost is an alarm,
+    # and the demo drowns in noise nobody believes.
+    alarms:
+      enabled: true
+      check_interval: 5
+      history_size: 500
+      notifications:
+        email:
+          enabled: false
+        slack:
+          enabled: false
+      rules:
+        - name: "ColdRoom LT 01 High-High Temperature"
+          tag: "Refrigeration/ColdRoom_LT_01/AirTemperature"
+          condition: ">"
+          threshold: -12.0
+          priority: "CRITICAL"
+          delay_seconds: 600
+          message: "Low-temperature cold room above -12 C for 10 minutes"
+
+        - name: "ColdRoom LT 01 Low-Low Temperature"
+          tag: "Refrigeration/ColdRoom_LT_01/AirTemperature"
+          condition: "<"
+          threshold: -30.0
+          priority: "CRITICAL"
+          delay_seconds: 600
+          message: "Low-temperature cold room below -30 C for 10 minutes"
+
+        - name: "ColdRoom LT 01 Defrost Overrun"
+          tag: "Refrigeration/ColdRoom_LT_01/DefrostActive"
+          condition: "=="
+          threshold: true
+          priority: "WARNING"
+          delay_seconds: 2700
+          message: "Defrost cycle running longer than 45 minutes"
+
+        - name: "ColdRoom LT 01 Door Open"
+          tag: "Refrigeration/ColdRoom_LT_01/DoorOpen"
+          condition: "=="
+          threshold: true
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Cold room door open longer than 5 minutes"
+
+        - name: "ColdRoom MT 01 High-High Temperature"
+          tag: "Refrigeration/ColdRoom_MT_01/AirTemperature"
+          condition: ">"
+          threshold: 10.0
+          priority: "CRITICAL"
+          delay_seconds: 600
+          message: "Medium-temperature cold room above +10 C for 10 minutes"
+
+        - name: "ColdRoom MT 01 Low-Low Temperature"
+          tag: "Refrigeration/ColdRoom_MT_01/AirTemperature"
+          condition: "<"
+          threshold: -3.0
+          priority: "CRITICAL"
+          delay_seconds: 600
+          message: "Medium-temperature cold room below -3 C for 10 minutes"
+
+        - name: "Occupied Space 01 High Temperature"
+          tag: "HVAC/Space_01/RoomAirTemperature"
+          condition: ">"
+          threshold: 27.0
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Occupied space above 27 C"
+
+        - name: "Occupied Space 01 Low Temperature"
+          tag: "HVAC/Space_01/RoomAirTemperature"
+          condition: "<"
+          threshold: 18.0
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Occupied space below 18 C"
+
+        - name: "Occupied Space 01 High Humidity"
+          tag: "HVAC/Space_01/RoomRelativeHumidity"
+          condition: ">"
+          threshold: 65.0
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Occupied space above 65 %RH"
+
+        - name: "Occupied Space 01 Low Humidity"
+          tag: "HVAC/Space_01/RoomRelativeHumidity"
+          condition: "<"
+          threshold: 30.0
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Occupied space below 30 %RH"
+
+        - name: "AHU 01 General Fault"
+          tag: "HVAC/AHU_01/GeneralFault"
+          condition: "=="
+          threshold: true
+          priority: "CRITICAL"
+          message: "Air handling unit general fault"
+
+        - name: "AHU 01 High Supply Air Temperature"
+          tag: "HVAC/AHU_01/SupplyAirTemperature"
+          condition: ">"
+          threshold: 20.0
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Supply air above 20 C"
+
+        - name: "AHU 01 Low Supply Air Temperature"
+          tag: "HVAC/AHU_01/SupplyAirTemperature"
+          condition: "<"
+          threshold: 8.0
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Supply air below 8 C"
+
+        - name: "AHU 01 Filter Differential Pressure"
+          tag: "HVAC/AHU_01/FilterDiffPressure"
+          condition: ">"
+          threshold: 250.0
+          priority: "WARNING"
+          delay_seconds: 120
+          message: "Filter differential pressure high - change filter"
+
+        - name: "Switchboard 01 High Voltage"
+          tag: "Power/Switchboard_01/VoltageAB"
+          condition: ">"
+          threshold: 242.0
+          priority: "CRITICAL"
+          delay_seconds: 60
+          message: "Line-to-line voltage above 242 V"
+
+        - name: "Switchboard 01 Low Voltage"
+          tag: "Power/Switchboard_01/VoltageAB"
+          condition: "<"
+          threshold: 198.0
+          priority: "CRITICAL"
+          delay_seconds: 60
+          message: "Line-to-line voltage below 198 V"
+
+        - name: "Switchboard 01 Phase A Overcurrent"
+          tag: "Power/Switchboard_01/CurrentA"
+          condition: ">"
+          threshold: 240.0
+          priority: "CRITICAL"
+          delay_seconds: 30
+          message: "Phase A current above 240 A"
+
+        - name: "Switchboard 01 Phase B Overcurrent"
+          tag: "Power/Switchboard_01/CurrentB"
+          condition: ">"
+          threshold: 240.0
+          priority: "CRITICAL"
+          delay_seconds: 30
+          message: "Phase B current above 240 A"
+
+        - name: "Switchboard 01 Phase C Overcurrent"
+          tag: "Power/Switchboard_01/CurrentC"
+          condition: ">"
+          threshold: 240.0
+          priority: "CRITICAL"
+          delay_seconds: 30
+          message: "Phase C current above 240 A"
+
+        - name: "Switchboard 01 Low Power Factor"
+          tag: "Power/Switchboard_01/TotalPowerFactor"
+          condition: "<"
+          threshold: 0.90
+          priority: "WARNING"
+          delay_seconds: 300
+          message: "Total power factor below 0.90"
+
+        # 90% of a 150 kW contracted demand.
+        - name: "Switchboard 01 Demand Approaching Contract"
+          tag: "Power/Switchboard_01/Demand15Min"
+          condition: ">"
+          threshold: 135.0
+          priority: "WARNING"
+          delay_seconds: 60
+          message: "15-minute demand at 90% of contracted demand"
+
+        - name: "Generator 01 Common Alarm"
+          tag: "Power/Generator_01/CommonAlarm"
+          condition: "=="
+          threshold: true
+          priority: "CRITICAL"
+          message: "Standby generator common alarm"
+
+  # ── Tags: deliberately empty ─────────────────────────────────────────
+  #
+  # The 25 Fragua points are NOT defined here. They live in fragua-tags.json
+  # beside this file and are pushed into the running gateway with
+  # seed-tags.py, which EmberBurn persists to its own data volume. Changing a
+  # tag is an edit to that file and a re-run of the seeder — or a few clicks in
+  # the EmberBurn web UI — with no chart edit, no helm upgrade and no release.
+  #
+  # Putting the tag list back in here would undo that.
+  tags: {}
+
+persistence:
+  enabled: true
+  size: 2Gi          # holds the runtime tag store and the SQLite value log

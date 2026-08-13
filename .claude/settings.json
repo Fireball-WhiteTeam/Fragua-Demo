@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh:*)",
+      "Bash(az:*)",
+      "Bash(export PATH=*)",
+      "Bash(kubectl:*)",
+      "Bash(helm:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git grep:*)",
+      "Bash(git tag:*)",
+      "Bash(git cat-file:*)",
+      "Bash(git merge-base:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(gh:*)"
+    ]
+  }
+}
