@@ -42,7 +42,7 @@
 
 emberburn:
   image:
-    tag: "4.1.17"          # 4.1.16 and earlier: unstable numeric OPC node ids
+    tag: "4.1.19"          # 4.1.18 and earlier pin the UI to the dashboard path proxy
   opcua:
     updateInterval: 2
     logLevel: "INFO"
