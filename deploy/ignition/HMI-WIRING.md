@@ -43,6 +43,38 @@ hard-rejects any other name (see `project-deploy.md`), and the name is
 perfectly valid under the standard edition too, so it survives either choice.
 Because it is on the PVC it survives pod restarts, rescheduling and reboots.
 
+### Why the iframe stayed blank (fixed in chart 1.0.15 + 1.0.16)
+
+Two separate faults, both silent, both in the chart rather than the gateway:
+
+1. **No tenant label.** The chart had no `tenantLabels` support at all, so the
+   tenant block the App Store injects was discarded and the Service carried no
+   `embernet.ai/tenant`. With it empty, `appLaunchURL` falls back to the
+   NAMESPACE for the tenant part of the host and built
+   `ignition-edge-…--default--default--8088` — a host no router can authorize
+   for Fragua. Fixed in **1.0.15**.
+
+2. **Redirects downgraded to http.** `gateway.xml` ships
+   `gateway.useProxyForwardedHeader=false`, so the gateway builds redirects from
+   the scheme of the connection it terminated — always http, since TLS is
+   terminated upstream. Ignition redirects constantly (`/` → `/Start` →
+   `/web/home`), and a browser on an https page will not follow an http redirect
+   inside an iframe. Fixed in **1.0.16**, applied on every boot because the file
+   lives on the PVC and an already-seeded gateway keeps the old value.
+
+Neither logs an error. The gateway answers every request correctly — at the
+wrong scheme, on a host nothing can reach.
+
+Verified after the fix, sending `X-Forwarded-Proto: https` as the dashboard does:
+
+```
+/       302 → https://ignition-edge-fragua-edge-01--fragua--default--8088.apps.embernet.ai/Start
+/Start  302 → https://…/web/waiting
+```
+
+and, without the header, the gateway correctly still answers `http://` — the
+flag honours the proxy rather than forcing a scheme.
+
 ### Iframe embedding — do NOT "fix" this on the Ignition side
 
 The gateway sends `X-Frame-Options: SAMEORIGIN`, which would block embedding at
