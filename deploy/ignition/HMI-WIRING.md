@@ -18,6 +18,43 @@ and goes to the cloud. Neither depends on the other.
 
 ---
 
+## 0. State of the gateway (2026-08-13)
+
+`ignition-edge-fragua-edge-01` reports:
+
+```
+$ curl -s http://<svc>:8088/system/gwinfo
+ContextStatus=NEEDS_COMMISSIONING;
+```
+
+It has **never been commissioned** — no admin user, no edition chosen, empty
+`data/db/`. Every path (`/web/config`, `/web/home`, `/data/api/v1/*`) 302s to
+`/welcome`. That is not an auth failure and not an OAuth problem; the gateway
+is parked on its setup wizard. Nothing below works until someone completes it.
+
+The image is `inductiveautomation/ignition:8.1.44` — the stock image, so the
+edition is chosen during commissioning.
+
+**The FRAGUAV3 project is already deployed and waiting**, at
+`/usr/local/bin/ignition/data/projects/Edge` on the gateway's Longhorn PVC
+(`gateway-data`), owned `999:root`, with `project.json` title set to `Edge`.
+Both the directory name and the title are `Edge` deliberately: Edge edition
+hard-rejects any other name (see `project-deploy.md`), and the name is
+perfectly valid under the standard edition too, so it survives either choice.
+Because it is on the PVC it survives pod restarts, rescheduling and reboots.
+
+### Iframe embedding — do NOT "fix" this on the Ignition side
+
+The gateway sends `X-Frame-Options: SAMEORIGIN`, which would block embedding at
+`apps.embernet.ai`. **The dashboard already handles it**: its `/api/proxy`
+strips `X-Frame-Options` and `frame-ancestors` from upstream responses
+(industrial-dashboard UPG-055, `stripFrameBlockingHeaders`), and calls out
+Ignition's SAMEORIGIN as the reason it exists.
+
+So the gateway keeps its default header and stays embeddable, as long as it is
+opened through the dashboard proxy rather than linked to directly. Relaxing the
+header on the gateway would weaken every non-proxied path for no benefit.
+
 ## 1. Tags exist first
 
 The 65 PLC_PRG tags are pushed into EmberBurn, not into a chart:
