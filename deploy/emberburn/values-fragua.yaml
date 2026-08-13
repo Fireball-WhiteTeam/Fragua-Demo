@@ -1,12 +1,26 @@
-# EmberBurn values for the Fragua demo site — Corporativo Fragua, Guadalajara.
-#
-# The 25 points below are the site's tag list: two cold rooms, an occupied
-# space, a lighting zone, an air handling unit, a main switchboard meter and a
-# standby generator. Retail/DC refrigeration and building services, not a
-# factory.
+# EmberBurn deploy values for the Fragua demo site — Corporativo Fragua,
+# Guadalajara.
 #
 #   helm upgrade --install emberburn-fragua-edge-01 embernet/emberburn \
 #     --namespace default --values values-fragua.yaml
+#
+# ── There are no tags in this file, and there should never be ───────────────
+#
+# The site's tags live beside it as data and are pushed into the running
+# gateway, which persists them to its own volume:
+#
+#   fragua-tags.json      25 points — the site tag schedule, feeds the
+#                         EmberNet dashboard over Sparkplug
+#   fragua-hmi-tags.json  65 points — the PLC_PRG names the FRAGUAV3 HMI
+#                         binds to, served over OPC-UA to Ignition Edge
+#
+#   python seed-tags.py --url http://127.0.0.1:5000 --api-key "$KEY" \
+#     --file fragua-tags.json
+#
+# Changing a tag is an edit to those files and a re-run of the seeder, or a few
+# clicks in the EmberBurn web UI at :5000. No values edit, no helm upgrade, no
+# chart release. This file only carries deploy-shaped settings: where the pod
+# runs, how it reaches the broker, and its alarm schedule.
 #
 # ── Three things here are load-bearing, and all three fail silently ──────────
 #
@@ -28,7 +42,7 @@
 
 emberburn:
   image:
-    tag: "4.1.15"          # 4.1.14 and earlier ignore this file entirely
+    tag: "4.1.17"          # 4.1.16 and earlier: unstable numeric OPC node ids
   opcua:
     updateInterval: 2
     logLevel: "INFO"

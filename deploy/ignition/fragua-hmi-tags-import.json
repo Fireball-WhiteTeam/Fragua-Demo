@@ -1,0 +1,621 @@
+{
+  "name": "PLC_PRG",
+  "tagType": "Folder",
+  "tags": [
+    {
+      "name": "Alta_AlarmSP",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Alta_AlarmSP",
+      "documentation": "Camara Alta - Setpoint de alarma alta",
+      "engUnit": "°C"
+    },
+    {
+      "name": "Alta_On",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Alta_On",
+      "documentation": "Camara Alta - Compresor en marcha"
+    },
+    {
+      "name": "Alta_SP",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Alta_SP",
+      "documentation": "Camara Alta - Setpoint de temperatura",
+      "engUnit": "°C"
+    },
+    {
+      "name": "Alta_Temp",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Alta_Temp",
+      "documentation": "Camara Alta - Temperatura",
+      "engUnit": "°C"
+    },
+    {
+      "name": "Baja_Alarm",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Baja_Alarm",
+      "documentation": "Camara Baja - Alarma de temperatura alta"
+    },
+    {
+      "name": "Baja_AlarmSP",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Baja_AlarmSP",
+      "documentation": "Camara Baja - Setpoint de alarma alta",
+      "engUnit": "°C"
+    },
+    {
+      "name": "Baja_On",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Baja_On",
+      "documentation": "Camara Baja - Compresor en marcha"
+    },
+    {
+      "name": "Baja_SP",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Baja_SP",
+      "documentation": "Camara Baja - Setpoint de temperatura",
+      "engUnit": "°C"
+    },
+    {
+      "name": "Baja_Temp",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Baja_Temp",
+      "documentation": "Camara Baja - Temperatura",
+      "engUnit": "°C"
+    },
+    {
+      "name": "FP",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/FP",
+      "documentation": "Medidor principal - Factor de potencia"
+    },
+    {
+      "name": "HVAC1_Hist",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_Hist",
+      "documentation": "HVAC 1 - Histeresis",
+      "engUnit": "°C"
+    },
+    {
+      "name": "HVAC1_On",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_On",
+      "documentation": "HVAC 1 - Unidad en marcha"
+    },
+    {
+      "name": "HVAC1_Out",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_Out",
+      "documentation": "HVAC 1 - Salida de control",
+      "engUnit": "%"
+    },
+    {
+      "name": "HVAC1_SP",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_SP",
+      "documentation": "HVAC 1 - Setpoint",
+      "engUnit": "°C"
+    },
+    {
+      "name": "HVAC1_Temp",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_Temp",
+      "documentation": "HVAC 1 - Temperatura de espacio",
+      "engUnit": "°C"
+    },
+    {
+      "name": "HVAC2_Hist",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_Hist",
+      "documentation": "HVAC 2 - Histeresis",
+      "engUnit": "°C"
+    },
+    {
+      "name": "HVAC2_On",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_On",
+      "documentation": "HVAC 2 - Unidad en marcha"
+    },
+    {
+      "name": "HVAC2_Out",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_Out",
+      "documentation": "HVAC 2 - Salida de control",
+      "engUnit": "%"
+    },
+    {
+      "name": "HVAC2_SP",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_SP",
+      "documentation": "HVAC 2 - Setpoint",
+      "engUnit": "°C"
+    },
+    {
+      "name": "HVAC2_Temp",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_Temp",
+      "documentation": "HVAC 2 - Temperatura de espacio",
+      "engUnit": "°C"
+    },
+    {
+      "name": "Hora_H",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Int4",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Hora_H",
+      "documentation": "Reloj de planta - Hora"
+    },
+    {
+      "name": "Hora_M",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Int4",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Hora_M",
+      "documentation": "Reloj de planta - Minuto"
+    },
+    {
+      "name": "Hora_S",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Int4",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Hora_S",
+      "documentation": "Reloj de planta - Segundo"
+    },
+    {
+      "name": "KVA",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KVA",
+      "documentation": "Medidor principal - Potencia aparente",
+      "engUnit": "kVA"
+    },
+    {
+      "name": "KVAR",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KVAR",
+      "documentation": "Medidor principal - Potencia reactiva",
+      "engUnit": "kVAR"
+    },
+    {
+      "name": "KVARH",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KVARH",
+      "documentation": "Medidor principal - Energia reactiva acumulada",
+      "engUnit": "kVARh"
+    },
+    {
+      "name": "KW",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KW",
+      "documentation": "Medidor principal - Potencia activa total",
+      "engUnit": "kW"
+    },
+    {
+      "name": "KWH",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KWH",
+      "documentation": "Medidor principal - Energia activa acumulada",
+      "engUnit": "kWh"
+    },
+    {
+      "name": "KW_HVAC1",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KW_HVAC1",
+      "documentation": "HVAC 1 - Potencia",
+      "engUnit": "kW"
+    },
+    {
+      "name": "KW_HVAC2",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KW_HVAC2",
+      "documentation": "HVAC 2 - Potencia",
+      "engUnit": "kW"
+    },
+    {
+      "name": "KW_Luces",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KW_Luces",
+      "documentation": "Iluminacion - Potencia total",
+      "engUnit": "kW"
+    },
+    {
+      "name": "KW_VFD",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/KW_VFD",
+      "documentation": "Variador - Potencia",
+      "engUnit": "kW"
+    },
+    {
+      "name": "Luz1",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz1",
+      "documentation": "Luz zona 1 - Estado"
+    },
+    {
+      "name": "Luz1_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz1_En",
+      "documentation": "Luz zona 1 - Habilitada"
+    },
+    {
+      "name": "Luz2",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz2",
+      "documentation": "Luz zona 2 - Estado"
+    },
+    {
+      "name": "Luz2_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz2_En",
+      "documentation": "Luz zona 2 - Habilitada"
+    },
+    {
+      "name": "Luz3",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz3",
+      "documentation": "Luz zona 3 - Estado"
+    },
+    {
+      "name": "Luz3_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz3_En",
+      "documentation": "Luz zona 3 - Habilitada"
+    },
+    {
+      "name": "Luz4",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz4",
+      "documentation": "Luz zona 4 - Estado"
+    },
+    {
+      "name": "Luz4_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz4_En",
+      "documentation": "Luz zona 4 - Habilitada"
+    },
+    {
+      "name": "Luz5",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz5",
+      "documentation": "Luz zona 5 - Estado"
+    },
+    {
+      "name": "Luz5_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz5_En",
+      "documentation": "Luz zona 5 - Habilitada"
+    },
+    {
+      "name": "Luz6",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz6",
+      "documentation": "Luz zona 6 - Estado"
+    },
+    {
+      "name": "Luz6_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz6_En",
+      "documentation": "Luz zona 6 - Habilitada"
+    },
+    {
+      "name": "Luz7",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz7",
+      "documentation": "Luz zona 7 - Estado"
+    },
+    {
+      "name": "Luz7_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz7_En",
+      "documentation": "Luz zona 7 - Habilitada"
+    },
+    {
+      "name": "Luz8",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz8",
+      "documentation": "Luz zona 8 - Estado"
+    },
+    {
+      "name": "Luz8_En",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Luz8_En",
+      "documentation": "Luz zona 8 - Habilitada"
+    },
+    {
+      "name": "Noche",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Noche",
+      "documentation": "Modo nocturno"
+    },
+    {
+      "name": "Override_luz_1",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_1",
+      "documentation": "Luz zona 1 - Override manual"
+    },
+    {
+      "name": "Override_luz_2",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_2",
+      "documentation": "Luz zona 2 - Override manual"
+    },
+    {
+      "name": "Override_luz_3",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_3",
+      "documentation": "Luz zona 3 - Override manual"
+    },
+    {
+      "name": "Override_luz_4",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_4",
+      "documentation": "Luz zona 4 - Override manual"
+    },
+    {
+      "name": "Override_luz_5",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_5",
+      "documentation": "Luz zona 5 - Override manual"
+    },
+    {
+      "name": "Override_luz_6",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_6",
+      "documentation": "Luz zona 6 - Override manual"
+    },
+    {
+      "name": "Override_luz_7",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_7",
+      "documentation": "Luz zona 7 - Override manual"
+    },
+    {
+      "name": "Override_luz_8",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/Override_luz_8",
+      "documentation": "Luz zona 8 - Override manual"
+    },
+    {
+      "name": "VFD_Hz",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VFD_Hz",
+      "documentation": "Variador - Frecuencia",
+      "engUnit": "Hz"
+    },
+    {
+      "name": "VFD_On",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Boolean",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VFD_On",
+      "documentation": "Variador - En marcha"
+    },
+    {
+      "name": "VL1L2",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VL1L2",
+      "documentation": "Medidor principal - Tension entre fases VL1L2",
+      "engUnit": "V"
+    },
+    {
+      "name": "VL1N",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VL1N",
+      "documentation": "Medidor principal - Tension fase-neutro VL1N",
+      "engUnit": "V"
+    },
+    {
+      "name": "VL2L3",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VL2L3",
+      "documentation": "Medidor principal - Tension entre fases VL2L3",
+      "engUnit": "V"
+    },
+    {
+      "name": "VL2N",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VL2N",
+      "documentation": "Medidor principal - Tension fase-neutro VL2N",
+      "engUnit": "V"
+    },
+    {
+      "name": "VL3L1",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VL3L1",
+      "documentation": "Medidor principal - Tension entre fases VL3L1",
+      "engUnit": "V"
+    },
+    {
+      "name": "VL3N",
+      "tagType": "AtomicTag",
+      "valueSource": "opc",
+      "dataType": "Float8",
+      "opcServer": "EmberBurn",
+      "opcItemPath": "ns=2;s=PLC_PRG/VL3N",
+      "documentation": "Medidor principal - Tension fase-neutro VL3N",
+      "engUnit": "V"
+    }
+  ]
+}
