@@ -39,7 +39,16 @@ import urllib.request
 
 TENANT = "fragua"
 DECODER_NAME = "fragua-sparkplug"
-ARCHIVE_GROUP = "fragua-tags"
+
+# NO HYPHEN. AnvilMQ derives Postgres table names from the archive group name
+# and does not quote them, so `fragua-tags` becomes the identifier
+# `fragua-tagsLastval` and every table creation dies with:
+#
+#   Error in creating table [fragua-tagsLastval]: ERROR: syntax error at or near "-"
+#
+# The group still reports enabled=true, deployed=false, and archives nothing —
+# so from the dashboard it looks exactly like the decoder not producing data.
+ARCHIVE_GROUP = "fragua_tags"
 
 # Decoded topics land at `fragua/<edge node>/<device>/<metric path>`, e.g.
 # fragua/fragua-edge-01/fragua-hq-guadalajara/Refrigeration/ColdRoom_LT_01/AirTemperature
@@ -51,7 +60,7 @@ class Broker:
         self.url = url
         self.token = token
 
-    def query(self, document, variables=None):
+    def query(self, document, variables=None, timeout=30):
         payload = {"query": document, "variables": variables or {}}
         request = urllib.request.Request(
             self.url,
@@ -63,7 +72,7 @@ class Broker:
             request.add_header("Authorization", f"Bearer {self.token}")
 
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
                 body = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             raise SystemExit(f"{self.url} returned HTTP {e.code}: {e.read().decode('utf-8', 'replace')}")
@@ -178,7 +187,7 @@ def main():
         "{ archiveGroups { name enabled } }")["archiveGroups"]}
 
     if ARCHIVE_GROUP in groups:
-        print(f"archive group {ARCHIVE_GROUP} already exists — leaving it alone")
+        print(f"archive group {ARCHIVE_GROUP} already exists")
     else:
         result = broker.query(
             """mutation($i:CreateArchiveGroupInput!){
@@ -189,6 +198,25 @@ def main():
             print(f"archive group FAILED: {result.get('message')}", file=sys.stderr)
             return 1
         print(f"archive group created: {ARCHIVE_GROUP} <- {TENANT}/# into Postgres")
+
+    # `CreateArchiveGroupInput` has no `enabled` field, so a freshly created
+    # group lands enabled=false / deployed=false and archives nothing. Nothing
+    # errors — currentValues simply stays empty, which reads exactly like the
+    # decoder not working.
+    state = next((g for g in broker.query(
+        "{ archiveGroups { name enabled deployed } }")["archiveGroups"]
+        if g["name"] == ARCHIVE_GROUP), None)
+    if state and not state.get("enabled"):
+        result = broker.query(
+            'mutation($n:String!){ archiveGroup { enable(name:$n){ success message archiveGroup { name enabled deployed } } } }',
+            {"n": ARCHIVE_GROUP}, timeout=120,
+        )["archiveGroup"]["enable"]
+        if not result.get("success"):
+            print(f"archive group enable FAILED: {result.get('message')}", file=sys.stderr)
+            return 1
+        print(f"archive group enabled: {result.get('archiveGroup')}")
+    else:
+        print(f"archive group already enabled: {state}")
 
     # ── confirm ──────────────────────────────────────────────────────────
     topics = broker.query(
