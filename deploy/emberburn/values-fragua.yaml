@@ -56,8 +56,20 @@ nodeSelector:
 network:
   hostNetwork: true        # see note 2 above
 
+# These mirror exactly what the App Store deploy path sets (store.go
+# buildChartSpec). This release is applied as a HelmChart CR by hand, so
+# anything the dashboard would have injected has to be reproduced here or the
+# tile renders wrong:
+#
+#   displayName — the App Store always sets it to the RELEASE NAME, so every
+#     instance is distinguishable. Not a human-invented label.
+#   appIcon     — the chart's built-in default is a data: URI (embedded for
+#     air-gapped clusters). The dashboard renders only `http…` or `default`;
+#     anything else falls through raw and Go's html/template emits #ZgotmplZ.
+#     The App Store injects the catalog's https icon, so this does too.
 embernet:
-  displayName: "Fragua Site Simulator"
+  displayName: "emberburn-fragua-edge-01"
+  appIcon: "https://avatars.githubusercontent.com/u/254966106?s=200&v=4"
 
 # Tags are authored through the API, and EmberBurn refuses anonymous writes:
 # with no configured key it generates an ephemeral per-pod token, which the web
