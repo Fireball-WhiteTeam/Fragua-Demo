@@ -40,25 +40,28 @@ BIND_POLICY_NAME = f"{SERVICE_NAME}-bind"
 DIAL_POLICY_NAME = f"fragua-{SERVICE_NAME}-dial"
 TERMINATOR_HOST = "anvilmq.fireball-system.svc.cluster.local"
 
-# WHAT THE HOST CONFIG ACTUALLY DIALS. This is the ClusterIP, NOT
-# TERMINATOR_HOST, and that is an empirical result rather than a preference.
+# The host config dials the SERVICE DNS NAME. Do not replace this with a
+# ClusterIP — a ClusterIP is reassignable and goes stale silently when the
+# Service is recreated.
 #
-# Tested on 2026-08-14 with terminators confirmed present in both arms, so
-# neither result is confounded by a missing bind:
+# ROOT CAUSE, settled 2026-08-14. This briefly had to be a ClusterIP because
+# the DNS form reset every dial, and the reason was NOT Ziti: the
+# flux-edge-tunnel DaemonSets ran hostNetwork=true with dnsPolicy=Default, so
+# the tunnel pods inherited the NODE's /etc/resolv.conf — `nameserver 1.1.1.1`
+# — and could not resolve *.svc.cluster.local at all. The bind side simply
+# could not find the upstream.
 #
-#   address = anvilmq.fireball-system.svc.cluster.local  -> connection reset
-#   address = 10.43.74.142                               -> MQTT CONNACK 0x00
+# Fixed at the source by setting dnsPolicy: ClusterFirstWithHostNet on the
+# flux-edge-tunnel releases (flux-router had already made this exact change in
+# its chart v2.0.26; it was never applied here). Pod resolv.conf is now
+# `nameserver 10.43.0.10` (CoreDNS) and the name resolves, so the DNS form is
+# correct again and carries a real MQTT CONNACK.
 #
-# ignition-cloud-host.v1 uses the DNS form and works, so this is specific to
-# this service and not a general "names do not resolve" rule. Root cause not
-# established; the working configuration is recorded here so it is not
-# rediscovered the hard way.
-#
-# THE FRAGILITY IS REAL AND UNRESOLVED: a ClusterIP is reassignable. If the
-# anvilmq Service is ever recreated this value goes stale and the broker dies
-# silently. Verify with:
-#     kubectl -n fireball-system get svc anvilmq -o jsonpath='{.spec.clusterIP}'
-TERMINATOR_ADDR = "10.43.74.142"
+# If this ever resets again, check the tunnel pod's resolver BEFORE touching
+# anything in Ziti:
+#     kubectl -n flux-system exec ds/flux-tunnel-embernet-cp005-flux-edge-tunnel \
+#       -- getent hosts anvilmq.fireball-system.svc.cluster.local
+TERMINATOR_ADDR = TERMINATOR_HOST
 
 # CHANGING EITHER CONFIG DROPS THE TERMINATOR, AND IT DOES NOT COME BACK BY
 # ITSELF. Observed repeatedly on 2026-08-14: any PUT to anvilmq-mqtt-host takes
