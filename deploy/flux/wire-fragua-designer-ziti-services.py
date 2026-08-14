@@ -38,22 +38,59 @@ ADMIN_P = os.environ["ZITI_ADMIN_PASSWORD"]
 # re-running this script would have repointed both designer binds at
 # nonexistent identities — no node could host its Designer, and nothing would
 # have said so. A pinned id does not survive a re-enrollment; a name does.
+# WHAT ACTUALLY HAPPENED, 2026-08-14. The reasoning above was right and the
+# implementation still pinned ids, so both designers sat at ZERO TERMINATORS —
+# nothing had hosted either one since the 2.x identity change. @8wIhMwE9I and
+# @9cO634E9T are fragua-edge-01/-02, which now report api=False edgeRouter=False;
+# the identities actually attached on those hosts are fragua-edge-0N-router.
+#
+# identityRoles will NOT accept a name. Verified against the controller:
+# "@fragua-edge-01-router" -> 400, "no identities found with the given ids". So
+# "resolve the name at runtime" can only ever produce an id, and an id is the
+# thing that just rotted.
+#
+# The durable form is a PER-NODE ROLE ATTRIBUTE on the identity that runs on
+# that node. Precise like an id, survives re-enrollment like a name. It must be
+# per-node and must NOT be the existing shared #hosts-fragua: each host config
+# points at ITS OWN localhost:8088, so a shared role would let edge-02 host
+# edge-01's Designer and serve the wrong gateway to an engineer who believes
+# they are on edge-01 — silent, and worse than being down.
 EDGES = [
     {
         "name": "fragua-edge-01-designer",
-        "intercept": "100.65.0.10",
+        # Moved off 100.65.0.10, which sat INSIDE the router's DNS intercept
+        # pool 100.65.0.0/16 and could be handed to another service at any time
+        # — the collision that put fragua-k3s-api.flux.internal on top of
+        # anvilmq-mqtt. 100.64.65.x matches embernet-dashboard (.1),
+        # fragua-k3s-api (.2) and anvilmq-mqtt (.3).
+        "intercept": "100.64.65.10",
         "port": 8088,
         "terminator_host": "localhost",
-        "bind_identity_name": "fragua-edge-01",
+        "bind_identity_name": "fragua-edge-01-router",
+        "bind_role": "hosts-fragua-edge-01-designer",
     },
     {
         "name": "fragua-edge-02-designer",
-        "intercept": "100.65.0.11",
+        "intercept": "100.64.65.11",
         "port": 8088,
         "terminator_host": "localhost",
-        "bind_identity_name": "fragua-edge-02",
+        "bind_identity_name": "fragua-edge-02-router",
+        "bind_role": "hosts-fragua-edge-02-designer",
     },
 ]
+
+# The host config must be the THREE-FIELD form: protocol, address, port. Do not
+# add allowedAddresses / allowedPortRanges / allowedProtocols — those are the
+# companions of forwardAddress/forwardPort/forwardProtocol, none of which are
+# set here, so including them makes the config say both "always dial
+# localhost:8088" and "let the caller choose". Both designer host configs
+# carried them and were reduced on 2026-08-14.
+
+# AFTER RUNNING THIS, RESTART THE TUNNELER ON EACH EDGE. Editing a host config
+# drops the terminator and the tunnelers do not re-bind on their own:
+#     systemctl restart embernet.service
+# Then confirm terminators are non-zero. A TCP connect proves nothing — the
+# kernel owns the intercept address whether or not anything is hosting.
 
 ENGINEER_ROLE = "fragua-engineers"
 SHARED_DIAL_POLICY = "fragua-designer-dial"
@@ -134,6 +171,37 @@ def ensure_service(name, config_ids):
     return sid
 
 
+def ensure_identity_role(identity_name, role):
+    """Ensure `identity_name` carries role attribute `role`, additively.
+
+    This is what makes the bind policy stable. The policy references #role, and
+    the role lives on whichever identity currently runs on that node — so a
+    re-enrollment that changes the identity's id (which is exactly what left
+    both designers with zero terminators) only requires re-stamping the
+    attribute, not editing every policy that referenced the old id.
+
+    ADDITIVE ON PURPOSE. These identities carry fragua-edge-dial and
+    hosts-fragua, and those grant access elsewhere; replacing the list instead
+    of appending would silently revoke it.
+    """
+    ident = find_by_name("identities", identity_name)
+    if not ident:
+        raise SystemExit(
+            f"!! identity {identity_name!r} not found. Bind cannot be wired, and "
+            f"the service would sit with no terminator while looking healthy."
+        )
+    attrs = list(ident.get("roleAttributes") or [])
+    if role in attrs:
+        print(f"  ok: identity {identity_name} already has #{role}")
+        return
+    r = c.patch(
+        f"{ZITI_URL}/edge/management/v1/identities/{ident['id']}",
+        json={"roleAttributes": attrs + [role]},
+    )
+    r.raise_for_status()
+    print(f"  updated: identity {identity_name} += #{role}")
+
+
 def ensure_service_policy(name, policy_type, identity_roles, service_roles):
     existing = find_by_name("service-policies", name)
     body = {
@@ -181,6 +249,9 @@ def main():
                 "portRanges": [{"low": edge["port"], "high": edge["port"]}],
             },
         )
+        # Three fields only — see the note above EDGES. The allowed* keys that
+        # used to be here contradict a fixed address/port and were removed live
+        # on 2026-08-14.
         host_cfg = ensure_config(
             f"{name}-host",
             host_type,
@@ -188,16 +259,21 @@ def main():
                 "protocol": "tcp",
                 "address": edge["terminator_host"],
                 "port": edge["port"],
-                "allowedProtocols": ["tcp"],
-                "allowedAddresses": [edge["terminator_host"]],
-                "allowedPortRanges": [{"low": edge["port"], "high": edge["port"]}],
             },
         )
         ensure_service(name, [intercept_cfg, host_cfg])
+
+        # Bind by PER-NODE ROLE ATTRIBUTE, not by identity reference. An id is
+        # what rotted when the hosts re-enrolled as *-router and left both
+        # designers with zero terminators; identityRoles rejects names outright
+        # (400, "no identities found with the given ids"), so resolving the name
+        # at runtime just produces another id. The attribute is put ON the
+        # identity here so the policy can be stable.
+        ensure_identity_role(edge["bind_identity_name"], edge["bind_role"])
         ensure_service_policy(
             f"{name}-bind",
             "Bind",
-            [identity_ref(edge["bind_identity_name"])],
+            [f"#{edge['bind_role']}"],
             [f"#{name}"],
         )
         service_role_refs.append(f"#{name}")
