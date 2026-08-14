@@ -92,7 +92,36 @@ EDGES = [
 # Then confirm terminators are non-zero. A TCP connect proves nothing — the
 # kernel owns the intercept address whether or not anything is hosting.
 
-ENGINEER_ROLE = "fragua-engineers"
+# WHO MAY DIAL A DESIGNER (Patrick, 2026-08-14).
+#
+# Engineer, Admin and Super Admin may. AN OPERATOR MAY NOT — Designer access
+# changes the plant, and that is not an Operator capability.
+#
+# Operator exclusion is enforced BY ABSENCE. Ziti policies only ever grant;
+# there is no deny. So "Operator cannot" is expressed by never stamping an
+# Operator identity with one of these attributes, and adding an operator
+# attribute to the dial policy would be the bug, not the fix.
+#
+# The authorization gate is the enrolled EmberNet Endpoint for Windows: a person
+# with one connected is authorized, and the attribute is granted BY HAND when
+# their endpoint is enrolled. Deliberately NOT driven from AAD groups — this is
+# a standing decision, not a gap waiting to be automated.
+#
+# Three attributes rather than one, because they are different grants that
+# merely coincide today. Collapsing them to #fragua-designer-access would make
+# it impossible to revoke Engineers without also revoking Admins, and would lose
+# the record of why each identity has the access.
+#
+# AnyOf: holding any one suffices. A Super Admin does not also need #engineers.
+DIAL_ROLES = [
+    "fragua-engineers",
+    "fragua-admins",
+    "fragua-superadmins",
+]
+
+# Kept for backwards compatibility with anything importing it. The dial policy
+# is built from DIAL_ROLES above; this alone is no longer the whole grant.
+ENGINEER_ROLE = DIAL_ROLES[0]
 SHARED_DIAL_POLICY = "fragua-designer-dial"
 
 c = httpx.Client(verify=False, timeout=15)
@@ -282,7 +311,7 @@ def main():
     ensure_service_policy(
         SHARED_DIAL_POLICY,
         "Dial",
-        [f"#{ENGINEER_ROLE}"],
+        [f"#{role}" for role in DIAL_ROLES],
         service_role_refs,
     )
 
@@ -290,8 +319,15 @@ def main():
     for edge in EDGES:
         print(f"  {edge['name']}:  tcp://{edge['intercept']}:{edge['port']}")
     print(
-        f"\nTag any enrolled identity with role attribute "
-        f"'{ENGINEER_ROLE}' to grant Designer access to both edges."
+        "\nGrant Designer access by tagging an enrolled identity with ONE of:\n"
+        + "".join(f"  #{role}\n" for role in DIAL_ROLES)
+        + "The enrolled EmberNet Endpoint for Windows is the authorization gate;\n"
+        "grant by hand when that endpoint is enrolled. NEVER tag an Operator —\n"
+        "exclusion is by absence, because Ziti policies only grant.\n"
+        "\nVerify with a real HTTP request expecting 302 (Ignition redirects):\n"
+        f"  curl -s -o /dev/null -w '%{{http_code}}' http://{EDGES[0]['intercept']}:{EDGES[0]['port']}/\n"
+        "A TCP connect proves NOTHING — the kernel owns the intercept address\n"
+        "whether or not anything is hosting the service."
     )
 
 
