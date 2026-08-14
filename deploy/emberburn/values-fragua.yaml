@@ -31,9 +31,14 @@
 #    `tenant-fragua/fragua`), NOT `fragua-demo`.
 #
 # 2. `network.hostNetwork: true` is required, not a preference. AnvilMQ is
-#    reached over the Flux overlay at the synthetic IP 100.65.0.2, and that
+#    reached over the Flux overlay at the synthetic IP 100.64.65.3, and that
 #    overlay is host-scoped: measured on fragua-edge-01, the host dials
-#    100.65.0.2:1883 fine and a normal pod cannot reach it at all.
+#    100.64.65.3:1883 fine and a normal pod cannot reach it at all.
+#
+#    THE ADDRESS CHANGED ON 2026-08-14 (was 100.65.0.2). The old one sat inside
+#    the Flux router's own DNS intercept pool 100.65.0.0/16, which the router
+#    allocates from dynamically — so it could be, and was, handed to another
+#    service. Keep this in step with deploy/flux/wire-anvilmq-ziti-service.py.
 #
 # 3. Metric names carry the UNS path. AnvilMQ's SparkplugB decoder appends the
 #    metric name to its destination topic, so `Refrigeration/ColdRoom_LT_01/
@@ -95,7 +100,7 @@ config:
   publishers:
     sparkplug_b:
       enabled: true
-      broker: "100.65.0.2"           # Flux synthetic IP for anvilmq-mqtt
+      broker: "100.64.65.3"          # Flux synthetic IP for anvilmq-mqtt (see note 2)
       port: 1883
       group_id: "fragua"             # see note 1 above
       edge_node_id: "fragua-edge-01"

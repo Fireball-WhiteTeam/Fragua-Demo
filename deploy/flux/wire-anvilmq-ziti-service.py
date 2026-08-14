@@ -18,7 +18,20 @@ ZITI_URL = os.environ["ZITI_CONTROLLER_URL"].rstrip("/")
 ADMIN_U = os.environ["ZITI_ADMIN_USER"]
 ADMIN_P = os.environ["ZITI_ADMIN_PASSWORD"]
 
-INTERCEPT_ADDR = "100.65.0.2"
+# MOVED 2026-08-14 AND MUST NOT MOVE BACK. This was 100.65.0.2, which is INSIDE
+# the Flux router's own DNS intercept pool (100.65.0.0/16) — the range the router
+# allocates from dynamically for name-based services. A static address in there
+# is a collision by construction, and it fired: when fragua-k3s-api gained a
+# `.flux.internal` name the router handed it exactly 100.65.0.2, and the two then
+# coexisted only because they happened to use different ports (1883 vs 6443).
+#
+# 100.64.65.3 matches the convention now used across the estate —
+# embernet-dashboard is 100.64.65.1, fragua-k3s-api is 100.64.65.2. Inside
+# 100.64.0.0/10 but outside both the DNS pool and every node /24, so nothing can
+# be allocated onto it and no real machine is shadowed by it.
+#
+# Consumers must agree: deploy/emberburn/values-fragua.yaml `broker:`.
+INTERCEPT_ADDR = "100.64.65.3"
 PORT = 1883
 SERVICE_NAME = "anvilmq-mqtt"
 INTERCEPT_CFG_NAME = f"{SERVICE_NAME}-intercept"
@@ -26,6 +39,43 @@ HOST_CFG_NAME = f"{SERVICE_NAME}-host"
 BIND_POLICY_NAME = f"{SERVICE_NAME}-bind"
 DIAL_POLICY_NAME = f"fragua-{SERVICE_NAME}-dial"
 TERMINATOR_HOST = "anvilmq.fireball-system.svc.cluster.local"
+
+# WHAT THE HOST CONFIG ACTUALLY DIALS. This is the ClusterIP, NOT
+# TERMINATOR_HOST, and that is an empirical result rather than a preference.
+#
+# Tested on 2026-08-14 with terminators confirmed present in both arms, so
+# neither result is confounded by a missing bind:
+#
+#   address = anvilmq.fireball-system.svc.cluster.local  -> connection reset
+#   address = 10.43.74.142                               -> MQTT CONNACK 0x00
+#
+# ignition-cloud-host.v1 uses the DNS form and works, so this is specific to
+# this service and not a general "names do not resolve" rule. Root cause not
+# established; the working configuration is recorded here so it is not
+# rediscovered the hard way.
+#
+# THE FRAGILITY IS REAL AND UNRESOLVED: a ClusterIP is reassignable. If the
+# anvilmq Service is ever recreated this value goes stale and the broker dies
+# silently. Verify with:
+#     kubectl -n fireball-system get svc anvilmq -o jsonpath='{.spec.clusterIP}'
+TERMINATOR_ADDR = "10.43.74.142"
+
+# CHANGING EITHER CONFIG DROPS THE TERMINATOR, AND IT DOES NOT COME BACK BY
+# ITSELF. Observed repeatedly on 2026-08-14: any PUT to anvilmq-mqtt-host takes
+# terminators to 0, and the hosting tunnelers do not re-bind on their own — they
+# have to be restarted:
+#
+#     kubectl -n flux-system rollout restart ds/flux-tunnel-embernet-cp005-flux-edge-tunnel
+#
+# This is almost certainly why the service sat at ZERO terminators with every
+# policy, SERP and identity checking out perfectly: something edited the config
+# once, and nothing ever restarted the tunnelers. AFTER RUNNING THIS SCRIPT,
+# RESTART THEM AND CONFIRM A CONNACK, or you have published a broker that
+# accepts TCP and resets every MQTT session:
+#
+#     exec 3<>/dev/tcp/100.64.65.3/1883
+#     printf '\x10\x0c\x00\x04MQTT\x04\x02\x00\x3c\x00\x00' >&3; head -c 4 <&3 | xxd
+#     # expect: 2002 0000  (CONNACK, return code 0 = accepted)
 BIND_IDENT_ROLES = ["#embernet-control-plane"]
 # Dial is granted by ROLE, never by identity id.
 #
@@ -153,16 +203,34 @@ def main():
             "portRanges": [{"low": PORT, "high": PORT}],
         },
     )
+    # THE THREE FIELDS ONLY. Do not re-add allowedProtocols /
+    # allowedAddresses / allowedPortRanges here.
+    #
+    # Those describe what a CLIENT may ask for when the host is in forwarding
+    # mode — they are the companions of forwardAddress / forwardPort /
+    # forwardProtocol. None of those are set, so including them made this config
+    # say two contradictory things at once: "always dial TERMINATOR_HOST:1883"
+    # and "let the caller pick from this allow-list".
+    #
+    # anvilmq-mqtt sat with ZERO terminators while ignition-cloud — same bind
+    # role, same routers, same fabric — had eight. The hosting tunnelers logged
+    # nothing about it at all, which is what a service they never accept as
+    # hostable looks like. Fixed live on 2026-08-14 by reducing this to the
+    # exact shape ignition-cloud-host.v1 uses, plus a restart of the cp tunnel
+    # DaemonSets so they re-enumerated; terminators went 0 -> 2 and an MQTT
+    # CONNACK (0x20 0x02 0x00 0x00, accepted) came back over the circuit.
+    #
+    # Whether the malformed config or the stale enumeration was load-bearing was
+    # never isolated — a restart against the OLD config was not tested. So this
+    # stays clean regardless: re-running the script must not be able to put the
+    # broker back in a state we spent a night diagnosing.
     host_cfg = ensure_config(
         HOST_CFG_NAME,
         host_type,
         {
             "protocol": "tcp",
-            "address": TERMINATOR_HOST,
+            "address": TERMINATOR_ADDR,
             "port": PORT,
-            "allowedProtocols": ["tcp"],
-            "allowedAddresses": [TERMINATOR_HOST],
-            "allowedPortRanges": [{"low": PORT, "high": PORT}],
         },
     )
 
