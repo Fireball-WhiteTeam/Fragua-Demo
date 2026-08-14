@@ -108,6 +108,20 @@ SERVICES = [
 
 APPLY = "--apply" in sys.argv
 
+# --only <service> restricts the run to one service.
+#
+# Converting a bind policy DROPS that service's terminator until the binder is
+# restarted, and these two are the k3s control path for two different tenants on
+# two different clusters. Doing both in one run means both control planes are
+# degraded simultaneously and a failure in the second leaves you diagnosing
+# under load. One tenant, verify, then the next.
+ONLY = None
+if "--only" in sys.argv:
+    i = sys.argv.index("--only")
+    if i + 1 >= len(sys.argv):
+        raise SystemExit("!! --only needs a service name")
+    ONLY = sys.argv[i + 1]
+
 c = httpx.Client(verify=False, timeout=30)
 
 
@@ -265,7 +279,15 @@ def main():
     intercept_type = config_type_id("intercept.v1")
     host_type = config_type_id("host.v1")
 
-    for svc in SERVICES:
+    selected = [s for s in SERVICES if ONLY is None or s["name"] == ONLY]
+    if ONLY and not selected:
+        raise SystemExit(
+            f"!! --only {ONLY!r} matches nothing. Known: "
+            + ", ".join(s["name"] for s in SERVICES))
+    if ONLY:
+        print(f"(restricted to {ONLY})")
+
+    for svc in selected:
         name = svc["name"]
         print(f"\n== {name} ==")
         assert_outside_pool(name, svc["intercept_addresses"])
