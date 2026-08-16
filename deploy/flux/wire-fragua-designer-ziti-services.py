@@ -4,8 +4,15 @@ with the `fragua-engineers` role attribute can dial each Fragua edge's
 Ignition Gateway at port 8088 (Designer config session + Perspective).
 
 Services land at:
-  fragua-edge-01-designer  intercept 100.65.0.10:8088 -> localhost:8088 on edge-01
-  fragua-edge-02-designer  intercept 100.65.0.11:8088 -> localhost:8088 on edge-02
+  fragua-edge-01-designer  intercept 100.64.67.10:8088 -> localhost:8088 on edge-01
+  fragua-edge-02-designer  intercept 100.64.67.11:8088 -> localhost:8088 on edge-02
+
+Each also still carries its retired 100.64.65.x address while engineers move
+over; see EDGES below. THIS BLOCK IS LOAD-BEARING DOCUMENTATION — it said
+100.65.0.10/.11 for a while after the addresses had moved, which is worse than
+saying nothing: the pool addresses it named are exactly the ones that must never
+be used again, and an operator reading the header would have re-created the
+collision by hand.
 
 Bind side is the corresponding Fragua node's own Ziti identity:
   Fragua-Embernode-0001 (id 199XSfc7B1) binds edge-01-designer
@@ -61,9 +68,26 @@ EDGES = [
         # Moved off 100.65.0.10, which sat INSIDE the router's DNS intercept
         # pool 100.65.0.0/16 and could be handed to another service at any time
         # — the collision that put fragua-k3s-api.flux.internal on top of
-        # anvilmq-mqtt. 100.64.65.x matches embernet-dashboard (.1),
-        # fragua-k3s-api (.2) and anvilmq-mqtt (.3).
-        "intercept": "100.64.65.10",
+        # anvilmq-mqtt.
+        #
+        # Then moved again, 2026-08-16, out of 100.64.65.x. That block is
+        # fireball's; every client cluster now gets its own, mirroring the node
+        # layout so the tenant is readable off the address (see embernet-iac
+        # templates/app/flux-address-reservations.tsv):
+        #
+        #     tenant N   nodes 100.64.N.0/24   services 100.64.(65+N).0/24
+        #     fragua = 2  ->   nodes 100.64.2.0/24   services 100.64.67.0/24
+        #
+        # BOTH addresses are listed on purpose. intercept.v1 takes a LIST, so the
+        # new one goes in alongside the old and nothing is cut over by editing
+        # this file. Drop the 100.64.65.x entry only once engineers are dialling
+        # the new address — their Designer bookmark is the sole consumer.
+        #
+        # Measured during the move: patching an intercept.v1 did NOT drop the
+        # terminator (held at 1). The "any config edit drops terminators" rule
+        # is specific to host.v1 — the dial side can be edited without touching
+        # the bind side.
+        "intercepts": ["100.64.67.10", "100.64.65.10"],
         "port": 8088,
         "terminator_host": "localhost",
         "bind_identity_name": "fragua-edge-01-router",
@@ -71,7 +95,7 @@ EDGES = [
     },
     {
         "name": "fragua-edge-02-designer",
-        "intercept": "100.64.65.11",
+        "intercepts": ["100.64.67.11", "100.64.65.11"],
         "port": 8088,
         "terminator_host": "localhost",
         "bind_identity_name": "fragua-edge-02-router",
@@ -169,9 +193,42 @@ def get_config_type_id(name):
 
 
 def ensure_config(name, cfg_type_id, data):
+    """Create the config, or PATCH it into shape if it already exists.
+
+    IT USED TO EARLY-RETURN ON ANY EXISTING CONFIG, and that made this whole
+    file a lie. Edit an address in EDGES above, re-run, and the script printed
+    `exists: config fragua-edge-01-designer-intercept` and changed NOTHING —
+    while reading exactly like success. Every "idempotent source of truth" claim
+    in this docstring was false for any value that had ever been written once.
+
+    Converging instead of only creating is the same fix, for the same reason, as
+    ZitiClient.ensure_config in the_reconciler/ziti.py.
+
+    The PATCH is deliberately narrow: it compares the fields WE set and leaves
+    anything else on the object alone, so a hand-added field is not silently
+    reverted by a routine re-run.
+    """
     existing = find_by_name("configs", name)
     if existing:
-        print(f"  exists: config {name} ({existing['id']})")
+        current = existing.get("data") or {}
+        drift = {k: v for k, v in data.items() if current.get(k) != v}
+        if not drift:
+            print(f"  exists: config {name} ({existing['id']}) — in shape")
+            return existing["id"]
+        print(f"  DRIFT in config {name} ({existing['id']}):")
+        for k, v in drift.items():
+            print(f"    {k}: {current.get(k)!r} -> {v!r}")
+        r = c.patch(
+            f"{ZITI_URL}/edge/management/v1/configs/{existing['id']}",
+            json={"name": name, "data": dict(current, **data)},
+        )
+        r.raise_for_status()
+        print(f"  patched: config {name}")
+        # Changing a HOST config drops terminators to 0 and the hosting
+        # tunnelers do NOT re-bind on their own. Intercept configs measured
+        # clean on 2026-08-16, but say it out loud either way so nobody
+        # declares victory off a TCP connect.
+        print(f"  -> re-check terminators for this service before declaring done")
         return existing["id"]
     body = {"name": name, "configTypeId": cfg_type_id, "data": data}
     r = c.post(f"{ZITI_URL}/edge/management/v1/configs", json=body)
@@ -274,7 +331,7 @@ def main():
             intercept_type,
             {
                 "protocols": ["tcp"],
-                "addresses": [edge["intercept"]],
+                "addresses": list(edge["intercepts"]),
                 "portRanges": [{"low": edge["port"], "high": edge["port"]}],
             },
         )
@@ -317,7 +374,10 @@ def main():
 
     print("\n== Done. Synthetic addresses for engineer to use ==")
     for edge in EDGES:
-        print(f"  {edge['name']}:  tcp://{edge['intercept']}:{edge['port']}")
+        primary = edge["intercepts"][0]
+        others = edge["intercepts"][1:]
+        extra = f"   (also still {', '.join(others)})" if others else ""
+        print(f"  {edge['name']}:  tcp://{primary}:{edge['port']}{extra}")
     print(
         "\nGrant Designer access by tagging an enrolled identity with ONE of:\n"
         + "".join(f"  #{role}\n" for role in DIAL_ROLES)
