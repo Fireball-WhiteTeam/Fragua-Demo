@@ -3,8 +3,16 @@ Idempotent: create the Ziti service `anvilmq-mqtt` (and the matching bind/dial
 policies + configs) so Fragua edges can dial the EmberNet AnvilMQ broker at
 synthetic IP 100.65.0.2:1883.
 
-Mirrors the existing `ignition-cloud` service pattern (id 6H5U38Lo55M5aY9Oforg3,
-synthetic IP 100.65.0.1:8060). Reuses the existing `#all` edge-router policies.
+Mirrors the existing `ignition-cloud` service pattern. Reuses the existing
+`#all` edge-router policies.
+
+This used to say ignition-cloud sat at synthetic IP 100.65.0.1:8060. It does
+not, and saying so was worse than saying nothing: 100.65.0.1 is inside the
+router's DNS pool, the exact address class that must never be pinned, so an
+operator copying this header would have recreated the collision by hand.
+Read off the live controller 2026-08-17, ignition-cloud is:
+    intercept  ignition-cloud.fireball-system.svc.cluster.local:8060
+    host.v1    ignition-cloud.fireball-system.svc.cluster.local:8060
 
 Run inside the embernet-provisioner pod — env vars ZITI_CONTROLLER_URL,
 ZITI_ADMIN_USER, ZITI_ADMIN_PASSWORD are pre-populated there.
