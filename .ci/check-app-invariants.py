@@ -146,6 +146,37 @@ class Finding:
         return "  [%s] %s\n      %s" % (self.rule, loc, self.detail)
 
 
+# The same waiver, expressed so it SURVIVES RENDERING.
+#
+# A comment in values.yaml is gone the moment `helm template` runs, so a chart
+# could be correctly waived and still fail when CI scans the rendered manifest
+# -- which is exactly what happened to codesys-app the first time this gate
+# ran. Worse: nothing scanning a LIVE object could ever see the reason either.
+#
+# As a pod annotation the reason travels with the workload: into the rendered
+# YAML, into the cluster, and into `kubectl get -o yaml` at 2am.
+#
+#     annotations:
+#       app-invariants.embernet.ai/allow-privileged: "needs host device nodes"
+WAIVER_ANNOTATION_RE = re.compile(
+    "app-invariants[.]embernet[.]ai/allow-privileged:" + r"\s*\S", re.I)
+
+
+def _enclosing_doc(text, offset):
+    """The YAML document containing `offset`.
+
+    Scoping the annotation waiver per document means one workload's exception
+    cannot silence another's in a multi-object rendered manifest.
+    """
+    bounds = [mm.start() for mm in re.finditer(r'^---[ 	]*$', text, re.M)]
+    starts = [0] + [b + 4 for b in bounds]
+    ends = bounds + [len(text)]
+    for a, b in zip(starts, ends):
+        if a <= offset < b:
+            return text[a:b]
+    return text
+
+
 def scan_files(root):
     """Yield every file worth checking under `root`.
 
@@ -230,14 +261,28 @@ def check_file(path):
     # string. Matching the bare name accepts the manifest spelling and the CAP_
     # form used in prose, so a chart can clear this rule by BEING right rather
     # than by adding a comment.
-    m = re.search(r"^\s*privileged:\s*true\b", text, re.M)
-    if m and "NET_BIND_SERVICE" not in text:
-        ln = text[:m.start()].count("\n") + 1
+    #
+    # EVERY occurrence, not just the first. This was re.search, so a file with
+    # more than one privileged block only ever had its leading one examined --
+    # and on a rendered multi-workload manifest that means every object after
+    # the first was invisible, with one waived workload silencing all of them.
+    # Caught by the cross-document waiver regression case.
+    for m in re.finditer('^\\s*privileged:\\s*true\\b', text, re.M):
+        if "NET_BIND_SERVICE" in text:
+            break
+        ln = text[:m.start()].count('\n') + 1
         # The waiver has to be attached to the thing it waives. Scanning the
         # whole file would let one reasoned exception silence every other
         # privileged block in a values.yaml that has several.
         window = "\n".join(lines[max(0, ln - 7):ln])
-        if WAIVER_RE.search(window):
+        #
+        # Two shapes, because there are two kinds of file. In a values.yaml a
+        # comment above the key is the only option, so the window is the scope.
+        # In a rendered manifest comments are gone and the annotation is the
+        # carrier -- scoped to the enclosing DOCUMENT, which is exactly one
+        # workload, so a waiver cannot leak onto a neighbouring object.
+        doc = _enclosing_doc(text, m.start())
+        if WAIVER_RE.search(window) or WAIVER_ANNOTATION_RE.search(doc):
             waived.append((path, ln))
         else:
             out.append(Finding(

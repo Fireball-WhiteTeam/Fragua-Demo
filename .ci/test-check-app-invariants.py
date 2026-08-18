@@ -129,6 +129,59 @@ dnsPolicy: Default
 """}, FAIL, "hostnet-dns-wrong"),
 
     # ---- Type 3: privileged --------------------------------------------
+    # A comment waiver is invisible after `helm template`, so the annotation
+    # form has to work on rendered output. codesys-app failed the gate for
+    # exactly this reason on its first run.
+    ("privileged waived by annotation in a rendered manifest",
+     {"rendered.yaml": """
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: codesys
+spec:
+  template:
+    metadata:
+      annotations:
+        app-invariants.embernet.ai/allow-privileged: "PLC runtime needs host device nodes"
+    spec:
+      containers:
+        - name: rt
+          securityContext:
+            privileged: true
+"""}, PASS, None),
+
+    # ...and it must not leak. One workload's exception silencing another's in a
+    # multi-object manifest would make the waiver worse than no waiver.
+    ("annotation on a DIFFERENT document does not waive",
+     {"two.yaml": """
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waived
+spec:
+  template:
+    metadata:
+      annotations:
+        app-invariants.embernet.ai/allow-privileged: "this one is fine"
+    spec:
+      containers:
+        - name: a
+          securityContext:
+            privileged: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-waived
+spec:
+  template:
+    spec:
+      containers:
+        - name: b
+          securityContext:
+            privileged: true
+"""}, FAIL, "privileged-no-caps"),
+
     ("privileged with no caps and no waiver fails",
      {"values.yaml": """
 securityContext:

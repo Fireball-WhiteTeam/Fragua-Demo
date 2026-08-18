@@ -2,20 +2,17 @@ name: App Invariants
 
 # Enforces embernet-iac templates/app/README.md against this repo's charts.
 #
-# These rules exist because each one has already broken production SILENTLY:
-# the workload comes up, reports healthy, passes a TCP connect, and moves no
-# traffic. A README alone did not stop the drift; this is the part that fails.
+# Every rule corresponds to an outage, and every one is SILENT: the workload
+# comes up, reports healthy, passes a TCP connect, and moves no traffic.
 #
-# THE CHECKER IS VENDORED, and that is a deliberate trade. The canonical copy
-# lives in embernet-iac templates/app/, which is private, and cross-repo
-# checkout of a private repo needs a token most of these repos do not have.
-# Vendored from embernet-iac@b79360d.
+# THE CHECKER IS VENDORED under .ci/, deliberately. The canonical copy lives in
+# embernet-iac templates/app/, which is private, so a cross-repo checkout needs
+# a token most of these repos do not have. The drift that vendoring risks is
+# mitigated rather than ignored: the checker's own 32-case regression suite is
+# vendored beside it and runs FIRST, so a copy that has rotted into uselessness
+# fails its own tests instead of reporting a confident green.
 #
-# The drift that vendoring risks is mitigated, not ignored: the checker's own
-# 30-case regression suite is vendored beside it and runs FIRST. A copy that has
-# rotted into uselessness fails its own tests rather than reporting a confident
-# green. To refresh: copy both files from embernet-iac templates/app/ and update
-# the stamp above.
+# To refresh: copy both files from embernet-iac templates/app/.
 
 on:
   push:
@@ -33,37 +30,40 @@ jobs:
       - uses: azure/setup-helm@v4
         with: { version: v3.16.2 }
 
-      # FIRST. A result measured with an unverified checker is worth nothing,
-      # and this suite fails 17/30 against the version it replaced.
+      # FIRST. A result measured with an unverified checker is worth nothing.
       - name: Prove the checker works before trusting it
         run: python3 .ci/test-check-app-invariants.py
 
       # Rendered manifests are the ONLY place the RWO/Recreate rule is
-      # decidable: the volume and the strategy live in one object there. Scanning
-      # values.yaml alone means that rule never runs and reports success forever.
+      # decidable: the volume and the strategy live in one object there.
+      # Charts sit in different places per repo, so find them rather than
+      # assuming charts/.
       - name: Render charts
         run: |
           set -euo pipefail
           mkdir -p .rendered
-          shopt -s nullglob
-          for c in charts/*/ chart/ .; do
-            [ -f "$c/Chart.yaml" ] || continue
-            n=$(basename "$(realpath "$c")")
-            helm template ci "$c" > ".rendered/$n.yaml" 2>/dev/null || echo "  ($n did not render with defaults)"
-          done
-          ls -la .rendered/ || true
+          while IFS= read -r cy; do
+            c=$(dirname "$cy")
+            case "$c" in */charts/*) continue ;; esac
+            n=$(basename "$c")
+            helm template ci "$c" > ".rendered/$n.yaml" 2>/dev/null               || { echo "note: $n did not render with bare defaults"; rm -f ".rendered/$n.yaml"; }
+          done < <(find . -maxdepth 3 -name Chart.yaml -not -path './.git/*')
+          echo "rendered:"; ls .rendered/ 2>/dev/null || echo "  (none)"
 
       - name: Check app invariants
         run: |
           set -euo pipefail
           TARGETS=""
-          for d in charts chart .rendered; do [ -d "$d" ] && TARGETS="$TARGETS $d"; done
-          [ -n "$TARGETS" ] || { echo "::error::no chart directory found to scan"; exit 1; }
+          for d in charts chart; do [ -d "$d" ] && TARGETS="$TARGETS $d"; done
+          # Only pass .rendered if something rendered. The checker refuses a
+          # NAMED path that matched zero files -- correctly, since a silently
+          # empty scan is the failure it exists to prevent -- so handing it an
+          # empty dir would fail every repo whose charts need values to render.
+          if [ -n "$(ls -A .rendered 2>/dev/null)" ]; then TARGETS="$TARGETS .rendered"; fi
+          [ -n "$TARGETS" ] || { echo "::error::nothing to scan"; exit 1; }
+          echo "scanning:$TARGETS"
           python3 .ci/check-app-invariants.py $TARGETS
 
-      # The checker refuses to pass when it scans zero files, so a bad path fails
-      # loudly instead of reporting green forever. Prove it still rejects a
-      # known-bad manifest, in case a future edit softens it.
       - name: Prove it still catches a violation
         run: |
           mkdir -p /tmp/canary
