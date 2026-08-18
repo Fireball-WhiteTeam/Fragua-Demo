@@ -1,0 +1,85 @@
+name: App Invariants
+
+# Enforces embernet-iac templates/app/README.md against this repo's charts.
+#
+# These rules exist because each one has already broken production SILENTLY:
+# the workload comes up, reports healthy, passes a TCP connect, and moves no
+# traffic. A README alone did not stop the drift; this is the part that fails.
+#
+# THE CHECKER IS VENDORED, and that is a deliberate trade. The canonical copy
+# lives in embernet-iac templates/app/, which is private, and cross-repo
+# checkout of a private repo needs a token most of these repos do not have.
+# Vendored from embernet-iac@b79360d.
+#
+# The drift that vendoring risks is mitigated, not ignored: the checker's own
+# 30-case regression suite is vendored beside it and runs FIRST. A copy that has
+# rotted into uselessness fails its own tests rather than reporting a confident
+# green. To refresh: copy both files from embernet-iac templates/app/ and update
+# the stamp above.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  app-invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: azure/setup-helm@v4
+        with: { version: v3.16.2 }
+
+      # FIRST. A result measured with an unverified checker is worth nothing,
+      # and this suite fails 17/30 against the version it replaced.
+      - name: Prove the checker works before trusting it
+        run: python3 .ci/test-check-app-invariants.py
+
+      # Rendered manifests are the ONLY place the RWO/Recreate rule is
+      # decidable: the volume and the strategy live in one object there. Scanning
+      # values.yaml alone means that rule never runs and reports success forever.
+      - name: Render charts
+        run: |
+          set -euo pipefail
+          mkdir -p .rendered
+          shopt -s nullglob
+          for c in charts/*/ chart/ .; do
+            [ -f "$c/Chart.yaml" ] || continue
+            n=$(basename "$(realpath "$c")")
+            helm template ci "$c" > ".rendered/$n.yaml" 2>/dev/null || echo "  ($n did not render with defaults)"
+          done
+          ls -la .rendered/ || true
+
+      - name: Check app invariants
+        run: |
+          set -euo pipefail
+          TARGETS=""
+          for d in charts chart .rendered; do [ -d "$d" ] && TARGETS="$TARGETS $d"; done
+          [ -n "$TARGETS" ] || { echo "::error::no chart directory found to scan"; exit 1; }
+          python3 .ci/check-app-invariants.py $TARGETS
+
+      # The checker refuses to pass when it scans zero files, so a bad path fails
+      # loudly instead of reporting green forever. Prove it still rejects a
+      # known-bad manifest, in case a future edit softens it.
+      - name: Prove it still catches a violation
+        run: |
+          mkdir -p /tmp/canary
+          cat > /tmp/canary/canary.yaml <<'EOF'
+          apiVersion: apps/v1
+          kind: DaemonSet
+          metadata:
+            name: canary
+          spec:
+            template:
+              spec:
+                hostNetwork: true
+                dnsPolicy: Default
+          EOF
+          if python3 .ci/check-app-invariants.py /tmp/canary; then
+            echo "::error::the checker PASSED a known-bad manifest - it is not working"
+            exit 1
+          fi
+          echo "checker correctly rejected the canary"
