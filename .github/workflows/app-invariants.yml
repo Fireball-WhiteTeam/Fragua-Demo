@@ -60,7 +60,11 @@ jobs:
           # empty scan is the failure it exists to prevent -- so handing it an
           # empty dir would fail every repo whose charts need values to render.
           if [ -n "$(ls -A .rendered 2>/dev/null)" ]; then TARGETS="$TARGETS .rendered"; fi
-          [ -n "$TARGETS" ] || { echo "::error::nothing to scan"; exit 1; }
+          # Fall back to the whole repo. Not every repo has charts: Fragua-Demo
+          # holds the Ziti wiring SCRIPTS, and those .py files are where the
+          # intercept literals live -- the offender class this checker was
+          # written for. "No charts" must not mean "nothing to check".
+          [ -n "$TARGETS" ] || TARGETS="."
           echo "scanning:$TARGETS"
           python3 .ci/check-app-invariants.py $TARGETS
 
