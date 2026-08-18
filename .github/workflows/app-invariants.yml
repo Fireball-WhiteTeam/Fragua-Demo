@@ -1,3 +1,11 @@
+# app-invariants: fixtures
+#
+# ^ This file EMBEDS a deliberately-broken manifest -- the canary that proves the
+#   checker still rejects hostNetwork+Default. When the scan falls back to the
+#   repo root, the checker reads that fixture and correctly flags it. Declaring
+#   the file as fixtures is the supported way to say "the bad YAML in here is on
+#   purpose", rather than deleting the canary or blanket-excluding .github and
+#   losing the ability to check anything under it.
 name: App Invariants
 
 # Enforces embernet-iac templates/app/README.md against this repo's charts.
