@@ -10,7 +10,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/Alta_AlarmSP",
       "documentation": "Camara Alta - Setpoint de alarma alta",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "Alta_On",
@@ -29,7 +29,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/Alta_SP",
       "documentation": "Camara Alta - Setpoint de temperatura",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "Alta_Temp",
@@ -39,7 +39,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/Alta_Temp",
       "documentation": "Camara Alta - Temperatura",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "Baja_Alarm",
@@ -58,7 +58,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/Baja_AlarmSP",
       "documentation": "Camara Baja - Setpoint de alarma alta",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "Baja_On",
@@ -77,7 +77,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/Baja_SP",
       "documentation": "Camara Baja - Setpoint de temperatura",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "Baja_Temp",
@@ -87,7 +87,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/Baja_Temp",
       "documentation": "Camara Baja - Temperatura",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "FP",
@@ -106,7 +106,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_Hist",
       "documentation": "HVAC 1 - Histeresis",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "HVAC1_On",
@@ -135,7 +135,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_SP",
       "documentation": "HVAC 1 - Setpoint",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "HVAC1_Temp",
@@ -145,7 +145,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/HVAC1_Temp",
       "documentation": "HVAC 1 - Temperatura de espacio",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "HVAC2_Hist",
@@ -155,7 +155,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_Hist",
       "documentation": "HVAC 2 - Histeresis",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "HVAC2_On",
@@ -184,7 +184,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_SP",
       "documentation": "HVAC 2 - Setpoint",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "HVAC2_Temp",
@@ -194,7 +194,7 @@
       "opcServer": "EmberBurn",
       "opcItemPath": "ns=2;s=PLC_PRG/HVAC2_Temp",
       "documentation": "HVAC 2 - Temperatura de espacio",
-      "engUnit": "°C"
+      "engUnit": "\u00b0C"
     },
     {
       "name": "Hora_H",
