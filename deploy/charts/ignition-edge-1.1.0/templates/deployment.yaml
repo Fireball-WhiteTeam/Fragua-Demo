@@ -1,0 +1,228 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ignition-edge.fullname" . }}
+  labels:
+    {{- include "ignition-edge.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  # CHART-CONTRACT §5.5: RWO volumes deadlock under RollingUpdate.
+  # Recreate is the only safe strategy for singleton stateful apps.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "ignition-edge.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ignition-edge.selectorLabels" . | nindent 8 }}
+        # ═══════════════════════════════════════════════════════════
+        # THE BIG FIVE — EmberNET App Store Discovery Labels
+        # Without ALL FIVE on the pod template, the dashboard
+        # cannot discover, proxy, or manage this application.
+        # ═══════════════════════════════════════════════════════════
+        {{- include "ignition-edge.storeLabels" . | nindent 8 }}
+      annotations:
+        embernet.ai/display-name: {{ .Values.embernet.appName | default "Ignition Edge" | quote }}
+    spec:
+      serviceAccountName: {{ include "ignition-edge.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.network.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: Default
+      {{- else }}
+      dnsPolicy: ClusterFirst
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.provisioner.enabled }}
+      # ════════════════════════════════════════════════════════════
+      # Auto-enrollment initContainers (Tier 1 overlay) — two-stage
+      # 1. provisioner-fetch (curl image): POST to provisioner with the
+      #    operator-managed shared_secret. Save flux_jwt to /shared/flux.jwt.
+      # 2. ziti-enroll (openziti/ziti-cli): consume /shared/flux.jwt,
+      #    run `ziti edge enroll`, emit /shared/identity.json.
+      # Main container mounts /shared at /etc/openziti so the gateway can
+      # dial overlay services (ignition-cloud, anvilmq, etc).
+      # ════════════════════════════════════════════════════════════
+      initContainers:
+        - name: provisioner-fetch
+          image: curlimages/curl:8.10.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PROVISIONER_URL
+              value: {{ .Values.provisioner.url | quote }}
+            - name: SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provisioner.sharedSecretRef.name | quote }}
+                  key:  {{ .Values.provisioner.sharedSecretRef.key | quote }}
+            - name: DEVICE_NAME
+              value: {{ .Values.provisioner.deviceNameOverride | default (include "ignition-edge.fullname" .) | quote }}
+            - name: DISPLAY_NAME
+              value: {{ .Values.provisioner.displayName | default (include "ignition-edge.fullname" .) | quote }}
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              FULL_NAME="${DEVICE_NAME}-${NODE_NAME}"
+              echo "Provisioning Ziti identity as: ${FULL_NAME}"
+              RESP=$(curl -sS --fail-with-body -X POST \
+                -H "Content-Type: application/json" \
+                -d "{\"shared_secret\":\"${SHARED_SECRET}\",\"device_name\":\"${FULL_NAME}\",\"display_name\":\"${DISPLAY_NAME}\"}" \
+                "${PROVISIONER_URL}")
+              if [ -z "$RESP" ]; then
+                echo "ERROR: empty response from provisioner at ${PROVISIONER_URL}" >&2
+                exit 1
+              fi
+              JWT=$(echo "$RESP" | sed -n 's/.*"flux_jwt"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+              if [ -z "$JWT" ]; then
+                echo "ERROR: no flux_jwt field in provisioner response" >&2
+                echo "$RESP" | head -c 500 >&2
+                exit 1
+              fi
+              echo "Got JWT (${#JWT} chars). Writing /shared/flux.jwt for the ziti-enroll initContainer."
+              printf '%s' "$JWT" > /shared/flux.jwt
+          volumeMounts:
+            - name: ziti-identity-shared
+              mountPath: /shared
+        - name: ziti-enroll
+          image: "{{ .Values.provisioner.initImage.repository }}:{{ .Values.provisioner.initImage.tag }}"
+          imagePullPolicy: {{ .Values.provisioner.initImage.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              if [ ! -s /shared/flux.jwt ]; then
+                echo "ERROR: /shared/flux.jwt missing or empty (provisioner-fetch must run first)" >&2
+                exit 1
+              fi
+              # ziti-cli 1.6.6 sometimes retries internally and the 2nd attempt
+              # hits INVALID_ENROLLMENT_TOKEN (OTT already consumed by the 1st
+              # successful enroll). It exits non-zero even though identity.json
+              # was written. Treat presence of a non-empty identity.json with
+              # a valid JSON identity envelope as success.
+              ziti edge enroll --jwt /shared/flux.jwt --out /shared/identity.json 2>&1 || true
+              if [ ! -s /shared/identity.json ] || ! grep -q '"ztAPI"' /shared/identity.json; then
+                echo "ERROR: enrollment did not produce a usable /shared/identity.json" >&2
+                exit 1
+              fi
+              SIZE=$(wc -c < /shared/identity.json)
+              echo "Enrolled identity written to /shared/identity.json (${SIZE} bytes)"
+              rm -f /shared/flux.jwt 2>/dev/null || true
+          volumeMounts:
+            - name: ziti-identity-shared
+              mountPath: /shared
+      {{- end }}
+      containers:
+        - name: ignition-edge
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ACCEPT_IGNITION_EULA
+              value: "Y"
+            - name: IGNITION_EDITION
+              value: {{ .Values.gateway.edition | default "edge" | quote }}
+            {{- if .Values.gateway.adminPasswordSecret.name }}
+            - name: GATEWAY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gateway.adminPasswordSecret.name | quote }}
+                  key: {{ .Values.gateway.adminPasswordSecret.key | default "password" | quote }}
+            {{- else if .Values.gateway.adminPassword }}
+            - name: GATEWAY_ADMIN_PASSWORD
+              value: {{ .Values.gateway.adminPassword | quote }}
+            {{- end }}
+            - name: GATEWAY_MAX_MEMORY
+              value: {{ .Values.gateway.heap.max | default "512m" | quote }}
+            - name: GATEWAY_INIT_MEMORY
+              value: {{ .Values.gateway.heap.init | default "256m" | quote }}
+          ports:
+            - name: http
+              containerPort: 8088
+              protocol: TCP
+            - name: gw-network
+              containerPort: 8060
+              protocol: TCP
+            - name: opcua
+              containerPort: 62541
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /usr/local/bin/ignition/data
+            {{- if .Values.persistence.backup.enabled }}
+            - name: backup
+              mountPath: /restore
+            {{- end }}
+            {{- if .Values.persistence.modules.enabled }}
+            - name: modules
+              mountPath: /usr/local/bin/ignition/user-lib/modules
+            {{- end }}
+            {{- if .Values.provisioner.enabled }}
+            - name: ziti-identity-shared
+              mountPath: /etc/openziti
+              readOnly: true
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probes.startup.path }}
+              port: http
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+          {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: http
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: http
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          {{- end }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "ignition-edge.fullname" . }}-data
+        {{- if .Values.persistence.backup.enabled }}
+        - name: backup
+          persistentVolumeClaim:
+            claimName: {{ include "ignition-edge.fullname" . }}-backup
+        {{- end }}
+        {{- if .Values.persistence.modules.enabled }}
+        - name: modules
+          persistentVolumeClaim:
+            claimName: {{ include "ignition-edge.fullname" . }}-modules
+        {{- end }}
+        {{- if .Values.provisioner.enabled }}
+        - name: ziti-identity-shared
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Ki
+        {{- end }}

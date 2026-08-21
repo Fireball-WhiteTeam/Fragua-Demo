@@ -1,0 +1,17 @@
+Ignition Edge {{ .Chart.AppVersion }} deployed as {{ .Release.Name }}.
+
+  Gateway Web UI:  http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc:{{ .Values.service.httpPort }}
+  GW Network:      {{ .Release.Name }}.{{ .Release.Namespace }}.svc:{{ .Values.service.gwNetworkPort }}
+  OPC-UA:          {{ .Release.Name }}.{{ .Release.Namespace }}.svc:{{ .Values.service.opcuaPort }}
+
+{{- if .Values.provisioner.enabled }}
+  Ziti Overlay:    Enabled (provisioner auto-enrollment)
+{{- else }}
+  Ziti Overlay:    Disabled (set provisioner.enabled=true for overlay access)
+{{- end }}
+
+⚠️  The Ignition Edge project MUST be named exactly "Edge".
+    Do NOT rename it. Edge edition performs a hard name check.
+
+⚠️  JVM heap is pinned to {{ .Values.gateway.heap.max }}.
+    On small edge nodes, higher values cause memory pressure.

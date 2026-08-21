@@ -1,5 +1,5 @@
 #!/bin/bash
-# Ignition Edge 8.3.6 install for Fragua edges.
+# Ignition Edge 8.3.8 install for Fragua edges.
 # Mirrors install_ignition_edge() from Fireball-Red-Team/deployment:deploy-ut3-cp02.sh.
 # Run as root.
 
@@ -8,8 +8,8 @@ set -e
 log()  { echo "[$(date -Is)] $*"; }
 warn() { echo "[$(date -Is)] WARN: $*" >&2; }
 
-IGNITION_EDGE_VERSION="8.3.6"
-IGNITION_EDGE_IMAGE="ghcr.io/embernet-ai/ignition-edge@sha256:c0be0e41d302f1509036a71fd82ce33c09e56396153f68a5836152690538b760"
+IGNITION_EDGE_VERSION="8.3.8"
+IGNITION_EDGE_IMAGE="ghcr.io/embernet-ai/ignition-edge:8.3.8"
 DATA_DIR="/opt/embernet/ignition-edge/data"
 IGNITION_ADMIN_PASSWORD="${IGNITION_ADMIN_PASSWORD:-GreatBallzFire01}"
 

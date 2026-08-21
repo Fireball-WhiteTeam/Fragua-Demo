@@ -1,0 +1,50 @@
+# CHART-CONTRACT §5.4: Separate PVCs by lifecycle
+# data — gateway db/config, the thing you must not lose
+# backup — .gwbk archives, large, regenerable
+# modules — Ignition modules, replaceable from image
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ignition-edge.fullname" . }}-data
+  labels:
+    {{- include "ignition-edge.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.data.accessMode | default "ReadWriteOnce" }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.data.size | default "20Gi" }}
+{{- if .Values.persistence.backup.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ignition-edge.fullname" . }}-backup
+  labels:
+    {{- include "ignition-edge.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.backup.accessMode | default "ReadWriteOnce" }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.backup.size | default "50Gi" }}
+{{- end }}
+{{- if .Values.persistence.modules.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ignition-edge.fullname" . }}-modules
+  labels:
+    {{- include "ignition-edge.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.modules.accessMode | default "ReadWriteOnce" }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.modules.size | default "5Gi" }}
+{{- end }}

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # CHART-CONTRACT §3.2: Service MUST be named exactly {{ .Release.Name }}
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "ignition-edge.labels" . | nindent 4 }}
+    # Same labels as on the pod template — both must have all five.
+    {{- include "ignition-edge.storeLabels" . | nindent 4 }}
+  annotations:
+    embernet.ai/display-name: {{ .Values.embernet.appName | default "Ignition Edge" | quote }}
+    embernet.ai/app-icon: {{ .Values.embernet.icon | quote }}
+spec:
+  type: {{ .Values.service.type | default "ClusterIP" }}
+  selector:
+    {{- include "ignition-edge.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+    - name: gw-network
+      port: {{ .Values.service.gwNetworkPort }}
+      targetPort: gw-network
+      protocol: TCP
+    - name: opcua
+      port: {{ .Values.service.opcuaPort }}
+      targetPort: opcua
+      protocol: TCP

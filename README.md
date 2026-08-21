@@ -75,7 +75,7 @@ All seven of these need to be in place before the user-facing experience kicks i
 | 2 | Clusters 1.35.4+k3s1 on both edges (server on -01, agent on -02), Longhorn, cert-manager, ghcr-secret replicated | Platform | `deploy/k3s/` | Snapshotter is `overlayfs`, **not** `overlay`. The k3s containerd build does not accept that string. Writing it down so you learn it quietly instead of loudly. |
 | 3 | Flux identities enrolled per edge via JWT, flux-edge-tunnel chart `v2.0.8` deployed | Platform | `deploy/flux/` | Identity persisted on **Longhorn RWX**, not local disk, not emptyDir. Pod restarts without this = re-enroll = new JWT = ticket. |
 | 4 | Rancher cluster import (cluster id `c-j7gtg`, displayName `Fragua`) | Platform | `deploy/rancher/` | Set `agent-tls-mode=system-store` globally on Rancher **before** importing, or cattle-cluster-agent CrashLoopBackOffs. I already spent that afternoon. You're welcome. |
-| 5 | CODESYS Control SL 4.20 + Ignition Edge 8.3.6 via Podman on each edge | Platform | `deploy/codesys/`, `deploy/ignition/` | Podman for this deployment. Once upstream chart PRs land, this can be done via Helm. |
+| 5 | CODESYS Control SL 4.20 + Ignition Edge 8.3.8 via Podman or Helm on each edge | Platform | `deploy/codesys/`, `deploy/ignition/`, `deploy/charts/ignition-edge-1.1.0/` | Podman for standalone, Helm for App Store. Once upstream chart PRs land, Helm is preferred. |
 | 6 | EmberNet Dashboard Tenant CR + node labels applied | Platform | `deploy/dashboard/tenant.yaml` | Skip this and the dashboard tenant dropdown stays empty no matter how clean the Rancher import looks. Apply the CR. Roll the dashboard deployment. Move on. |
 | 7 | **EmberNet Endpoint Controller** | **Fireball engineering** | Forthcoming Helm chart | Owns downstream OT discovery, claims devices into the tenant, normalizes Modbus/EtherNet-IP/OPC-UA for Ignition and the dashboard. Without this, the edges are just two VMs running PLCs in the void. |
 
@@ -203,6 +203,7 @@ Standing this up surfaced four bugs that got fixed and pushed back so the next s
 | [`deploy/wireguard/AWS-RECOVERY.md`](deploy/wireguard/AWS-RECOVERY.md) | Cross-cloud mesh recovery |
 | [`deploy/CLICKUP-UPDATE.md`](deploy/CLICKUP-UPDATE.md) | Status update at handoff |
 | [`deploy/dashboard/tenant.yaml`](deploy/dashboard/tenant.yaml) | Tenant CR, apply this to make a new site appear in the dashboard |
+| [`deploy/charts/ignition-edge-1.1.0/`](deploy/charts/ignition-edge-1.1.0/) | Ignition Edge 8.3.8 Helm chart, CHART-CONTRACT §7 compliant |
 | [`deploy/charts/embernet-probe-1.2.1/`](deploy/charts/embernet-probe-1.2.1/) | Probe chart fork with self-enroll baked in |
 | [`INDEX.md`](INDEX.md) | Full resource lookup table |
 

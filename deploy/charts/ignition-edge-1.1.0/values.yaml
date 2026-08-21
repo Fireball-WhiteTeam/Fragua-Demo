@@ -1,0 +1,154 @@
+# ──────────────────────────────────────────────────────────────────
+# Ignition Edge 8.3 — Helm Values
+# ──────────────────────────────────────────────────────────────────
+# Follows CHART-CONTRACT §7 (Tier 1 stateful, dashboard-visible).
+# Image is the multi-arch build from ignition-packages v8.3.8.
+# ──────────────────────────────────────────────────────────────────
+
+image:
+  repository: ghcr.io/embernet-ai/ignition-edge
+  tag: "8.3.8"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+replicaCount: 1
+
+# ──────────────────────────────────────────────────────────────────
+# Resources — sized for D2as_v4 edge nodes (2 vCPU, 8 GB).
+# JVM heap is pinned separately via gateway.heap (below).
+# ──────────────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# ──────────────────────────────────────────────────────────────────
+# Gateway configuration
+# ──────────────────────────────────────────────────────────────────
+gateway:
+  # JVM heap — pinned to prevent pressure on small edge nodes.
+  # Default Ignition 8.3 is 1024m which is too large for 4-8 GB nodes
+  # running etcd + Longhorn alongside.
+  heap:
+    init: 256m
+    max: 512m
+  # Edge edition performs a hard name check on the project name.
+  # Do NOT change this. See WHITE-TEAM-IGNITION-HANDOFF.md.
+  edition: edge
+  # Admin password — override via secret in production.
+  adminPassword: ""
+  adminPasswordSecret:
+    name: ""
+    key: "password"
+
+# ──────────────────────────────────────────────────────────────────
+# Service — MUST be named {{ .Release.Name }} per CHART-CONTRACT §3.2
+# ──────────────────────────────────────────────────────────────────
+service:
+  type: ClusterIP
+  httpPort: 8088
+  gwNetworkPort: 8060
+  opcuaPort: 62541
+
+# ──────────────────────────────────────────────────────────────────
+# EmberNET App Store Discovery Labels (THE BIG FIVE)
+# ──────────────────────────────────────────────────────────────────
+embernet:
+  appName: "Ignition Edge"
+  icon: "https://avatars.githubusercontent.com/u/254966106?s=200&v=4"
+  guiType: "web"
+  guiPort: "8088"
+
+# ──────────────────────────────────────────────────────────────────
+# Persistence — §5.4: separate PVCs by lifecycle
+# ──────────────────────────────────────────────────────────────────
+persistence:
+  storageClass: "longhorn"
+
+  data:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+
+  backup:
+    enabled: true
+    size: 50Gi
+    accessMode: ReadWriteOnce
+
+  modules:
+    enabled: true
+    size: 5Gi
+    accessMode: ReadWriteOnce
+
+# ──────────────────────────────────────────────────────────────────
+# Scheduling
+# ──────────────────────────────────────────────────────────────────
+nodeSelector: {}
+#  kubernetes.io/hostname: fragua-edge-01
+
+tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: {}
+
+# ──────────────────────────────────────────────────────────────────
+# Probes — JVM apps need a startup probe or liveness kills mid-boot
+# ──────────────────────────────────────────────────────────────────
+probes:
+  startup:
+    enabled: true
+    path: /StatusPing
+    failureThreshold: 30
+    periodSeconds: 10
+  liveness:
+    enabled: true
+    path: /StatusPing
+    periodSeconds: 30
+  readiness:
+    enabled: true
+    path: /StatusPing
+    periodSeconds: 10
+
+# ──────────────────────────────────────────────────────────────────
+# Auto-enrollment via embernet-provisioner (Tier 1 overlay access)
+# When enabled, two init containers run before the gateway:
+#   1. provisioner-fetch: POST shared_secret → receives Ziti JWT
+#   2. ziti-enroll: consumes JWT → writes identity.json
+# The gateway mounts /etc/openziti so it can dial overlay services.
+# ──────────────────────────────────────────────────────────────────
+provisioner:
+  enabled: false
+  url: "https://provisioner.embernet.ai/api/v1/provision"
+  sharedSecretRef:
+    name: "embernet-provisioner-credentials"
+    key: "shared_secret"
+  deviceNameOverride: ""
+  displayName: ""
+  initImage:
+    repository: openziti/ziti-cli
+    tag: "1.6.6"
+    pullPolicy: IfNotPresent
+
+# ──────────────────────────────────────────────────────────────────
+# Networking tier — see CHART-CONTRACT §4
+# ──────────────────────────────────────────────────────────────────
+network:
+  # Tier 2: only if the gateway needs host-level overlay access
+  # (e.g. dialing 100.65.0.x directly via embernet-endpoint tproxy).
+  # Prefer Tier 1 (provisioner.enabled) for per-pod Ziti identity.
+  hostNetwork: false
+
+serviceAccount:
+  create: true
+  name: ""
+  imagePullSecrets: []

@@ -137,7 +137,7 @@ deployed yet.
 | App | Image | Deployed Via |
 |---|---|---|
 | CODESYS AMD64 | `codesys/codesys-control` | App Store / HelmChart CRD |
-| Ignition Edge | `inductiveautomation/ignition` | App Store / HelmChart CRD |
+| Ignition Edge | `ghcr.io/embernet-ai/ignition-edge:8.3.8` | App Store / HelmChart CRD (chart v1.1.0) |
 | EmberNET Endpoint (per-edge host VPN + Ziti session) | `ghcr.io/embernet-ai/embernetlite:2.0.3` (or `:stable`) | `podman run --network host` (NOT k3s) |
 
 ## K8s Labels (Required)

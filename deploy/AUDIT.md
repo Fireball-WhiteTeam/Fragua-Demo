@@ -196,7 +196,7 @@ Backport to cp02 to fix the same silent failure there.
 | 5 | flux-edge-tunnel on fragua-edge-02 | ✅ superseded — replaced by per-edge embernet-endpoint container (2026-06-04 cutover); DaemonSet retired |
 | 6 | CODESYS Linux SL v4.20.0.0 (Podman, demo mode) on both edges | ✅ |
 | 6 | FraguaV2.project + Application.xml staged in `/opt/embernet/codesys/data/project/` | ✅ |
-| 7 | Ignition Edge 8.3.6 (Podman, mirror cp02 install_ignition_edge) on both edges | ✅ |
+| 7 | Ignition Edge 8.3.8 (Podman + Helm chart v1.1.0, mirror cp02 install_ignition_edge) on both edges | ✅ |
 | 7 | Edge gateway listens on :8088 (web) + :8060 (GW Network) + OPC-UA :62541 | ✅ |
 | 7a | EmberNet probe 1.2.1 (helm, self-enroll via provisioner.enabled=true) on edge-01 | ✅ `1/1 Running`, Ziti identity loaded |
 | 7b | Ziti router + service-policy + edge-router-policy + traefik SNI passthrough on cdn.embernet.ai:443 | ✅ end-to-end TCP dial verified |
@@ -265,7 +265,7 @@ fireball admin (key auth) still works as the original provisioning user.
 |---|---|---|
 | ~~edge-02 WG recovery + K3s rejoin~~ | ✅ DONE 2026-07-22 | Root cause was VM undersizing (B2s), not WG. Resized to D2as_v4 + 128 GiB; rejoined k3s Ready. |
 | Longhorn 2-node config | platform | `default-replica-count=3` on a 2-node cluster @ 100% over-provisioning — no schedulable budget for new 50Gi PVCs (edge-02 Ignition deployed with `backup.enabled=false` to dodge it). Set replica-count=2 and/or raise over-provisioning. |
-| Ignition Edge helm chart (`embernet-ai/Ignition-Edge-Pod`) — add `provisioner.enabled` self-enroll pattern | this repo branch (pending PR) | Mirror the pattern from `deploy/charts/embernet-probe-1.2.1/templates/deployment.yaml` lines 49-128 |
+| ~~Ignition Edge helm chart (`embernet-ai/Ignition-Edge-Pod`) — add `provisioner.enabled` self-enroll pattern~~ | ✅ DONE 2026-08-21 | Chart v1.1.0 at `deploy/charts/ignition-edge-1.1.0/`, 8.3.8, CHART-CONTRACT §7 compliant, provisioner self-enroll, multi-PVC lifecycle |
 | CODESYS helm chart (`embernet-ai/Codesys-AMD-64-x86`) — align with lessons learned | this repo branch (pending PR) | The Podman install learned `find -name '*.deb'` + equivs codemeter-lite shim — see `deploy/codesys/install-codesys.sh` |
 | Provisioner upstream PR | `embernet-ai/embernet-provisioner` | 5 fixes in 2 files; local fork at `.agent/repos/embernet-provisioner/` |
 | Probe dashboard-callback Ziti service | EmberNet cluster admin | Create service `embernet-dashboard-callback` with intercept/host configs pointing to `embernet-dashboard.fireball-system.svc.cluster.local:8080`; bind policy `#embernet-control-plane`; dial policy `#embernet-probes` |

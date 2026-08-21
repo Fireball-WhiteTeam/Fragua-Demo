@@ -82,13 +82,14 @@
 
 ---
 
-## ⚙️ Ignition Edge 8.3.6
+## ⚙️ Ignition Edge 8.3.8
 
 | File | Purpose |
 |---|---|
-| [`deploy/ignition/install-ignition-edge.sh`](deploy/ignition/install-ignition-edge.sh) | Podman install of Ignition Edge 8.3.6 |
+| [`deploy/ignition/install-ignition-edge.sh`](deploy/ignition/install-ignition-edge.sh) | Podman install of Ignition Edge 8.3.8 |
 | [`deploy/ignition/project-deploy.md`](deploy/ignition/project-deploy.md) | How to merge custom Perspective views into the `Edge` project. Edge edition does a **hard name check**: your project must be named `Edge`. Not "edge". Not "Edge-Fragua". `Edge`. The exact string. |
 | [`deploy/ignition/project-redeploy.sh`](deploy/ignition/project-redeploy.sh) | Idempotent script to push project updates to the Edge container |
+| [`deploy/charts/ignition-edge-1.1.0/`](deploy/charts/ignition-edge-1.1.0/) | Ignition Edge 8.3.8 Helm chart — CHART-CONTRACT §7 compliant, Tier 1 provisioner support, multi-PVC lifecycle |
 
 ---
 
@@ -96,6 +97,7 @@
 
 | Chart | Local fork | Upstream PR |
 |---|---|---|
+| `ignition-edge` | [`deploy/charts/ignition-edge-1.1.0/`](deploy/charts/ignition-edge-1.1.0/) | Ignition Edge 8.3.8 Helm chart, CHART-CONTRACT §7 compliant |
 | `embernet-probe` | [`deploy/charts/embernet-probe-1.2.1/`](deploy/charts/embernet-probe-1.2.1/) | Already-pushed fork chart, plus upstream PR on `Ignition-Edge-Pod` for the same self-enroll pattern |
 | `embernet-probe` chart fork notes | [`deploy/charts/embernet-probe-1.2.1/README-fork.md`](deploy/charts/embernet-probe-1.2.1/README-fork.md) | — |
 
